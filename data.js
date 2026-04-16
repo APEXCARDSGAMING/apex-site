@@ -9,6 +9,7 @@ window.certificates = {
       corners: "9.5",
       edges: "9",
       centering: "9.5"
+      
     },
     technicalAssessment:
       "La superficie mantiene brillo uniforme y no presenta rayas relevantes bajo luz directa. Las esquinas muestran cortes limpios con desgaste mínimo. El centrado se mantiene dentro de tolerancia premium, con leve predominancia del margen derecho sobre el izquierdo. Los bordes presentan buena integridad general, sin whitening significativo.",
