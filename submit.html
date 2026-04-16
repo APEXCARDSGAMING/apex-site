@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enviar carta a grading | APEX Card Grading</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+
+<body>
+  <div class="bg-grid"></div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html#top" class="brand">
+        <img src="assets/Logo-Apex .png" alt="APEX Card Grading" class="brand-logo" />
+      </a>
+
+      <nav class="nav">
+        <a href="index.html#proceso">Proceso</a>
+        <a href="index.html#escala">Escala</a>
+        <a href="index.html#precios">Precios</a>
+        <a href="index.html#reviews">Reviews</a>
+        <a href="index.html#contacto">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container submit-page">
+
+      <div class="submit-hero">
+        <p class="eyebrow">Submission</p>
+        <h1>Enviar carta a grading</h1>
+        <p class="submit-lead">
+          Completá tus datos para iniciar el proceso. Más adelante esta sección
+          puede conectarse a un formulario real, WhatsApp o base de datos.
+        </p>
+      </div>
+
+      <div class="submit-grid">
+        <div class="submit-form-card">
+          <form class="submit-form">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nombre">Nombre completo</label>
+                <input id="nombre" type="text" placeholder="Ej: Juan Pérez" required>
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" placeholder="ejemplo@mail.com" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="telefono">Número de teléfono</label>
+                <input id="telefono" type="text" placeholder="+54 9 223..." required>
+              </div>
+
+              <div class="form-group">
+                <label for="juego">Juego / TCG</label>
+                <select id="juego" required>
+                  <option value="">Seleccionar</option>
+                  <option>Pokémon</option>
+                  <option>Yu-Gi-Oh!</option>
+                  <option>Magic: The Gathering</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="carta">Nombre de la carta</label>
+              <input id="carta" type="text" placeholder="Ej: Charizard Holo 2016" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cantidad">Cantidad</label>
+                <input id="cantidad" type="number" min="1" value="1" required>
+              </div>
+
+              <div class="form-group">
+                <label for="servicio">Servicio</label>
+                <select id="servicio" required>
+                  <option value="">Seleccionar</option>
+                  <option>Standard</option>
+                  <option>Premium</option>
+                  <option>Elite</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="detalle">Comentarios adicionales</label>
+              <textarea id="detalle" rows="5" placeholder="Podés agregar detalles sobre la carta, estado, edición o cualquier aclaración."></textarea>
+            </div>
+
+            <div class="submit-actions">
+              <button type="submit" class="btn btn-solid">Enviar solicitud</button>
+              <a href="how-to-prepare.html" class="btn btn-outline">Cómo preparar la carta</a>
+            </div>
+
+          </form>
+        </div>
+
+        <div class="submit-side">
+          <div class="submit-info-card">
+            <p class="submit-info-label">Qué sigue</p>
+            <h2>Tu solicitud inicia el proceso</h2>
+            <p>
+              Una vez enviada, podés revisar con nosotros el tipo de servicio,
+              los tiempos estimados y la mejor forma de preparar el envío.
+            </p>
+          </div>
+
+          <div class="submit-steps-card">
+            <div class="submit-step-item">
+              <span>1</span>
+              <div>
+                <h3>Completá tus datos</h3>
+                <p>Registrá la información básica para iniciar el submission.</p>
+              </div>
+            </div>
+
+            <div class="submit-step-item">
+              <span>2</span>
+              <div>
+                <h3>Prepará la carta</h3>
+                <p>Protegé la carta correctamente antes de despacharla.</p>
+              </div>
+            </div>
+
+            <div class="submit-step-item">
+              <span>3</span>
+              <div>
+                <h3>Envío y recepción</h3>
+                <p>Una vez recibida, APEX comienza el proceso de evaluación.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="submit-note-card">
+            <h3>Importante</h3>
+            <ul>
+              <li>Podés enviar una o varias cartas según el servicio elegido.</li>
+              <li>Revisá la guía de preparación antes de despachar.</li>
+              <li>Más adelante este formulario puede generar un código de seguimiento.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</body>
+</html>
