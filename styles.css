@@ -497,7 +497,7 @@ h1{
     display:none;
   }
 }.reviews-grid {
-  display: grid;
+  display: none;
   grid-template-columns: 1.4fr 1fr 1fr;
   gap: 22px;
   align-items: stretch;
@@ -509,13 +509,13 @@ h1{
   border-radius: 28px;
   padding: 24px;
   box-shadow: var(--shadow);
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: space-between;
 }
 
 .review-card-featured {
-  display: grid;
+  display: none;
   grid-template-columns: 220px 1fr;
   gap: 20px;
   align-items: center;
@@ -532,7 +532,7 @@ h1{
   object-fit: cover;
   border-radius: 20px;
   border: 1px solid var(--line);
-  display: block;
+  display: none;
 }
 
 .review-stars {
