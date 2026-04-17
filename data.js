@@ -3,27 +3,45 @@ window.certificates = {
     certificateId: "ACG-000000001",
     status: "Verified Authentic",
     finalGrade: "9 MINT",
-    averageScore: "9.75",
+    averageScore: "8.87",
     subgrades: {
       surface: "9",
-      corners: "9.5",
+      corners: "8.5",
       edges: "9",
-      centering: "9.5"
-      
+      centering: "8,6"
     },
     technicalAssessment:
       "La superficie mantiene brillo uniforme y no presenta rayas relevantes bajo luz directa. Las esquinas muestran cortes limpios con desgaste mínimo. El centrado se mantiene dentro de tolerancia premium, con leve predominancia del margen derecho sobre el izquierdo. Los bordes presentan buena integridad general, sin whitening significativo.",
     cardDetails: {
-      year: "2021",
+      year: "2020",
       brand: "Pokémon",
-      set: "Evolving Skies",
+      set: "Vivid Voltage",
       name: "Charmander",
-      number: "092/203"
+      number: "023/185"
     },
     securityNotice:
       "Verificá que el slab físico, el label y la imagen registrada coincidan con esta ficha oficial.",
     image: "assets/charmander-slab.png",
-    file: "verify.html"
+    file: "verify.html",
+    zoomImages: {
+      front: {
+        topLeft: "assets/charmander-front-tl.png",
+        topRight: "assets/charmander-front-tr.png",
+        bottomLeft: "assets/charmander-front-bl.png",
+        bottomRight: "assets/charmander-front-br.png"
+      },
+      back: {
+        topLeft: "assets/charmander-back-tl.png",
+        topRight: "assets/charmander-back-tr.png",
+        bottomLeft: "assets/charmander-back-bl.png",
+        bottomRight: "assets/charmander-back-br.png"
+      }
+    },
+    microscopeImages: [
+      { src: "assets/charmander-micro-1.png", label: "Superficie" },
+      { src: "assets/charmander-micro-2.png", label: "Borde superior" },
+      { src: "assets/charmander-micro-3.png", label: "Esquina inferior" }
+    ]
   },
 
   "ACG-000000002": {
@@ -104,7 +122,7 @@ window.certificates = {
     file: "verify.html"
   },
 
- "ACG-000000005": {
+  "ACG-000000005": {
     certificateId: "ACG-000000005",
     status: "Verified Authentic",
     finalGrade: "10 APEX",
@@ -128,6 +146,5 @@ window.certificates = {
       "Verificá que el slab físico, el label y la imagen registrada coincidan con esta ficha oficial.",
     image: "assets/mewtwo-slab.png",
     file: "verify.html"
-  },
-
+  }
 };
