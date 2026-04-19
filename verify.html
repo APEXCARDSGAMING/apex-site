@@ -31,12 +31,19 @@
       margin:0;
       font-family:"Inter", sans-serif;
       color:var(--white);
-      background:
-        linear-gradient(180deg, #08090d, #0d1017);
+      background:linear-gradient(180deg, #08090d, #0d1017);
     }
 
-    a{ color:inherit; text-decoration:none; }
-    img{ max-width:100%; display:block; }
+    a{
+      color:inherit;
+      text-decoration:none;
+    }
+
+    img,
+    video{
+      max-width:100%;
+      display:block;
+    }
 
     .bg-grid{
       position:fixed;
@@ -73,6 +80,12 @@
       gap:24px;
     }
 
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+
     .brand-logo{
       height:80px;
       width:auto;
@@ -91,6 +104,54 @@
 
     .nav a:hover{
       color:#fff;
+    }
+
+    /* BUSCADOR HEADER */
+    .header-search{
+      display:flex;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      background:rgba(255,255,255,0.05);
+      transition:.2s ease;
+    }
+
+    .header-search:focus-within{
+      border-color:rgba(255,255,255,0.25);
+      box-shadow:0 0 0 3px rgba(255,255,255,0.05);
+    }
+
+    #headerCertInput{
+      height:44px;
+      width:220px;
+      padding:0 14px;
+      border:none;
+      background:transparent;
+      color:#fff;
+      font-size:.9rem;
+      outline:none;
+    }
+
+    #headerCertInput::placeholder{
+      color:rgba(255,255,255,0.4);
+    }
+
+    .header-search-btn{
+      height:44px;
+      padding:0 16px;
+      border:none;
+      border-left:1px solid var(--line);
+      background:#fff;
+      color:#000;
+      font-weight:600;
+      font-size:.9rem;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+
+    .header-search-btn:hover{
+      background:#eaeaea;
     }
 
     /* PAGE */
@@ -290,6 +351,35 @@
       letter-spacing:-0.03em;
     }
 
+    /* Centering */
+    .centering-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    .centering-card{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:18px;
+      overflow:hidden;
+    }
+
+    .centering-card img{
+      width:100%;
+      aspect-ratio:0.714 / 1;
+      object-fit:cover;
+    }
+
+    .centering-card span{
+      display:block;
+      padding:10px 12px;
+      text-align:center;
+      color:#d8d8de;
+      font-size:.9rem;
+    }
+
+    /* Zoom / Corners */
     .zoom-group{
       display:grid;
       gap:18px;
@@ -309,52 +399,251 @@
       gap:14px;
     }
 
-    .zoom-card{
+    .corner-analysis-card{
       background:rgba(255,255,255,0.04);
       border:1px solid rgba(255,255,255,0.07);
-      border-radius:18px;
+      border-radius:20px;
       overflow:hidden;
     }
 
-    .zoom-card img{
+    .corner-image-wrap{
+      position:relative;
+      background:#111;
+    }
+
+    .corner-image-wrap img{
       width:100%;
       aspect-ratio:1 / 1;
       object-fit:cover;
     }
 
-    .zoom-card span{
-      display:block;
-      padding:10px 12px;
-      font-size:.88rem;
-      color:#d8d8de;
-      text-align:center;
+    .corner-topbar{
+      position:absolute;
+      top:10px;
+      left:12px;
+      right:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      z-index:3;
     }
 
+    .corner-title{
+      font-size:.8rem;
+      font-weight:800;
+      color:#000000;
+      letter-spacing:.08em;
+    }
+
+    .corner-score{
+      font-size:.95rem;
+      font-weight:900;
+      color:#ff0000;
+    }
+
+  
+
+    .corner-metrics{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:12px;
+      border-top:1px solid rgba(255,255,255,0.06);
+    }
+
+    .corner-metric{
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(0,255,170,0.12);
+      border:1px solid rgba(0,255,170,0.18);
+      color:#7ef7d0;
+      font-size:.78rem;
+      font-weight:700;
+    }
+
+    .corner-defects{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:0 12px 12px;
+    }
+
+    .corner-defect{
+      padding:6px 10px;
+      border-radius:10px;
+      background:rgba(255,196,0,0.10);
+      border:1px solid rgba(255,196,0,0.18);
+      color:#f3c34a;
+      font-size:.76rem;
+      font-weight:700;
+    }
+
+    /* Microscopio */
     .micro-grid{
       display:grid;
       grid-template-columns:repeat(3, 1fr);
       gap:14px;
     }
 
-    .micro-card{
+    .micro-analysis-card{
       background:rgba(255,255,255,0.04);
       border:1px solid rgba(255,255,255,0.07);
-      border-radius:18px;
+      border-radius:20px;
       overflow:hidden;
     }
 
-    .micro-card img{
+    .micro-image-wrap{
+      position:relative;
+      background:#111;
+    }
+
+    .micro-image-wrap img{
       width:100%;
       aspect-ratio:1 / 1;
       object-fit:cover;
     }
 
-    .micro-card span{
-      display:block;
-      padding:10px 12px;
-      font-size:.88rem;
-      color:#d8d8de;
-      text-align:center;
+    .micro-topbar{
+      position:absolute;
+      top:10px;
+      left:12px;
+      right:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      z-index:3;
+    }
+
+    .micro-title{
+      font-size:.8rem;
+      font-weight:800;
+      color:#f3f3f3;
+      letter-spacing:.08em;
+    }
+
+    .micro-score{
+      font-size:.95rem;
+      font-weight:900;
+      color:#ffd34d;
+    }
+
+    .micro-metrics{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:12px;
+      border-top:1px solid rgba(255,255,255,0.06);
+    }
+
+    .micro-metric{
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(0,255,170,0.12);
+      border:1px solid rgba(0,255,170,0.18);
+      color:#7ef7d0;
+      font-size:.78rem;
+      font-weight:700;
+    }
+
+    .micro-defects{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:0 12px 12px;
+    }
+
+    .micro-defect{
+      padding:6px 10px;
+      border-radius:10px;
+      background:rgba(255,196,0,0.10);
+      border:1px solid rgba(255,196,0,0.18);
+      color:#f3c34a;
+      font-size:.76rem;
+      font-weight:700;
+    }
+
+    /* Edges */
+    .edge-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    .edge-analysis-card{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:20px;
+      overflow:hidden;
+    }
+
+    .edge-image-wrap{
+      position:relative;
+      background:#111;
+    }
+
+    .edge-image-wrap img{
+      width:100%;
+      aspect-ratio:16 / 5;
+      object-fit:cover;
+    }
+
+    .edge-topbar{
+      position:absolute;
+      top:10px;
+      left:12px;
+      right:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      z-index:3;
+    }
+
+    .edge-title{
+      font-size:.82rem;
+      font-weight:800;
+      color:#000000;
+      letter-spacing:.08em;
+    }
+
+    .edge-score{
+      font-size:.95rem;
+      font-weight:900;
+      color:#ff0000;
+    }
+
+    .edge-metrics{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:12px;
+      border-top:1px solid rgba(255,255,255,0.06);
+    }
+
+    .edge-metric{
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(0,255,170,0.12);
+      border:1px solid rgba(0,255,170,0.18);
+      color:#7ef7d0;
+      font-size:.78rem;
+      font-weight:700;
+    }
+
+    .edge-defects{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:0 12px 12px;
+    }
+
+    .edge-defect{
+      padding:6px 10px;
+      border-radius:10px;
+      background:rgba(255,196,0,0.10);
+      border:1px solid rgba(255,196,0,0.18);
+      color:#f3c34a;
+      font-size:.76rem;
+      font-weight:700;
     }
 
     .not-found{
@@ -397,7 +686,9 @@
       .text-grid,
       .zoom-grid,
       .micro-grid,
-      .meta-grid{
+      .meta-grid,
+      .centering-grid,
+      .edge-grid{
         grid-template-columns:1fr 1fr;
       }
 
@@ -415,11 +706,21 @@
         height:38px;
       }
 
+      .header-search{
+        width:100%;
+      }
+
+      #headerCertInput{
+        width:100%;
+      }
+
       .subgrades-grid,
       .text-grid,
       .zoom-grid,
       .micro-grid,
-      .meta-grid{
+      .meta-grid,
+      .centering-grid,
+      .edge-grid{
         grid-template-columns:1fr;
       }
 
@@ -440,11 +741,22 @@
       </a>
 
       <nav class="nav">
-        <a href="index.html#proceso">Proceso</a>
         <a href="index.html#escala">Escala</a>
+        <a href="index.html#proceso">Proceso</a>
         <a href="index.html#precios">Precios</a>
+        <a href="index.html#consultas">Consultas</a>
         <a href="index.html#contacto">Contacto</a>
       </nav>
+
+      <form class="header-search" id="headerSearchForm">
+        <input
+          type="text"
+          id="headerCertInput"
+          placeholder="Ingresá tu código ACG"
+          aria-label="Buscar certificado"
+        />
+        <button type="submit" class="header-search-btn">Buscar</button>
+      </form>
     </div>
   </header>
 
@@ -459,6 +771,66 @@
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     const container = document.getElementById("certContainer");
+
+    function normalizeCorner(corner){
+      if (!corner) return null;
+      if (typeof corner === "string") {
+        return { src: corner };
+      }
+      return corner;
+    }
+
+    function renderCentering(cert){
+      if (!cert.centeringImages) return "";
+
+      return `
+        <section class="panel section-block">
+          <h2 class="section-title">Análisis de centrado</h2>
+          <div class="centering-grid">
+            <div class="centering-card">
+              <img src="${cert.centeringImages.front}" alt="Centering frente">
+              <span>Frente</span>
+            </div>
+            <div class="centering-card">
+              <img src="${cert.centeringImages.back}" alt="Centering dorso">
+              <span>Dorso</span>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderCornerCard(corner, fallbackTitle) {
+      const item = normalizeCorner(corner);
+      if (!item || !item.src) return "";
+
+      const metrics = (item.metrics || [])
+        .map(metric => `<span class="corner-metric">${metric.label} ${metric.value}</span>`)
+        .join("");
+
+      const defects = (item.defects || [])
+        .map(defect => `<span class="corner-defect">${defect}</span>`)
+        .join("");
+
+      return `
+        <div class="corner-analysis-card">
+          <div class="corner-image-wrap">
+            <img src="${item.src}" alt="${item.title || fallbackTitle}">
+
+            <div class="corner-topbar">
+              <span class="corner-title">${item.title || fallbackTitle}</span>
+              ${item.score ? `<span class="corner-score">${item.score}</span>` : ""}
+            </div>
+
+            ${item.overlays && item.overlays.hLine ? `<span class="corner-line-h"></span>` : ""}
+            ${item.overlays && item.overlays.vLine ? `<span class="corner-line-v"></span>` : ""}
+          </div>
+
+          ${metrics ? `<div class="corner-metrics">${metrics}</div>` : ""}
+          ${defects ? `<div class="corner-defects">${defects}</div>` : ""}
+        </div>
+      `;
+    }
 
     function renderZoomSection(cert){
       if (!cert.zoomImages) return "";
@@ -480,10 +852,10 @@
               <div>
                 <p class="zoom-subtitle">Frente</p>
                 <div class="zoom-grid">
-                  ${front.topLeft ? `<div class="zoom-card"><img src="${front.topLeft}" alt="Esquina superior izquierda frente"><span>Superior izquierda</span></div>` : ""}
-                  ${front.topRight ? `<div class="zoom-card"><img src="${front.topRight}" alt="Esquina superior derecha frente"><span>Superior derecha</span></div>` : ""}
-                  ${front.bottomLeft ? `<div class="zoom-card"><img src="${front.bottomLeft}" alt="Esquina inferior izquierda frente"><span>Inferior izquierda</span></div>` : ""}
-                  ${front.bottomRight ? `<div class="zoom-card"><img src="${front.bottomRight}" alt="Esquina inferior derecha frente"><span>Inferior derecha</span></div>` : ""}
+                  ${renderCornerCard(front.topLeft, "TOP LEFT")}
+                  ${renderCornerCard(front.topRight, "TOP RIGHT")}
+                  ${renderCornerCard(front.bottomLeft, "BOTTOM LEFT")}
+                  ${renderCornerCard(front.bottomRight, "BOTTOM RIGHT")}
                 </div>
               </div>
             ` : ""}
@@ -492,15 +864,43 @@
               <div>
                 <p class="zoom-subtitle">Reverso</p>
                 <div class="zoom-grid">
-                  ${back.topLeft ? `<div class="zoom-card"><img src="${back.topLeft}" alt="Esquina superior izquierda reverso"><span>Superior izquierda</span></div>` : ""}
-                  ${back.topRight ? `<div class="zoom-card"><img src="${back.topRight}" alt="Esquina superior derecha reverso"><span>Superior derecha</span></div>` : ""}
-                  ${back.bottomLeft ? `<div class="zoom-card"><img src="${back.bottomLeft}" alt="Esquina inferior izquierda reverso"><span>Inferior izquierda</span></div>` : ""}
-                  ${back.bottomRight ? `<div class="zoom-card"><img src="${back.bottomRight}" alt="Esquina inferior derecha reverso"><span>Inferior derecha</span></div>` : ""}
+                  ${renderCornerCard(back.topLeft, "TOP LEFT")}
+                  ${renderCornerCard(back.topRight, "TOP RIGHT")}
+                  ${renderCornerCard(back.bottomLeft, "BOTTOM LEFT")}
+                  ${renderCornerCard(back.bottomRight, "BOTTOM RIGHT")}
                 </div>
               </div>
             ` : ""}
           </div>
         </section>
+      `;
+    }
+
+    function renderMicroscopeCard(item) {
+      if (!item || !item.src) return "";
+
+      const metrics = (item.metrics || [])
+        .map(metric => `<span class="micro-metric">${metric.label} ${metric.value}</span>`)
+        .join("");
+
+      const defects = (item.defects || [])
+        .map(defect => `<span class="micro-defect">${defect}</span>`)
+        .join("");
+
+      return `
+        <div class="micro-analysis-card">
+          <div class="micro-image-wrap">
+            <img src="${item.src}" alt="${item.title || item.label || "Captura de microscopio"}">
+
+            <div class="micro-topbar">
+              <span class="micro-title">${item.title || item.label || "DETAIL"}</span>
+              ${item.score ? `<span class="micro-score">${item.score}</span>` : ""}
+            </div>
+          </div>
+
+          ${metrics ? `<div class="micro-metrics">${metrics}</div>` : ""}
+          ${defects ? `<div class="micro-defects">${defects}</div>` : ""}
+        </div>
       `;
     }
 
@@ -511,12 +911,78 @@
         <section class="panel section-block">
           <h2 class="section-title">Capturas de microscopio</h2>
           <div class="micro-grid">
-            ${cert.microscopeImages.map(item => `
-              <div class="micro-card">
-                <img src="${item.src}" alt="${item.label || "Captura de microscopio"}">
-                <span>${item.label || "Detalle técnico"}</span>
+            ${cert.microscopeImages.map(item => renderMicroscopeCard(item)).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderEdgeCard(edge, fallbackTitle) {
+      if (!edge || !edge.src) return "";
+
+      const metrics = (edge.metrics || [])
+        .map(item => `<span class="edge-metric">${item.label} ${item.value}</span>`)
+        .join("");
+
+      const defects = (edge.defects || [])
+        .map(item => `<span class="edge-defect">${item}</span>`)
+        .join("");
+
+      return `
+        <div class="edge-analysis-card">
+          <div class="edge-image-wrap">
+            <img src="${edge.src}" alt="${edge.title || fallbackTitle}">
+            <div class="edge-topbar">
+              <span class="edge-title">${edge.title || fallbackTitle}</span>
+              ${edge.score ? `<span class="edge-score">${edge.score}</span>` : ""}
+            </div>
+          </div>
+
+          ${metrics ? `<div class="edge-metrics">${metrics}</div>` : ""}
+          ${defects ? `<div class="edge-defects">${defects}</div>` : ""}
+        </div>
+      `;
+    }
+
+    function renderEdgesSection(cert) {
+      if (!cert.edgeImages) return "";
+
+      const front = cert.edgeImages.front || {};
+      const back = cert.edgeImages.back || {};
+
+      const hasFront = front.top || front.bottom || front.left || front.right;
+      const hasBack = back.top || back.bottom || back.left || back.right;
+
+      if (!hasFront && !hasBack) return "";
+
+      return `
+        <section class="panel section-block">
+          <h2 class="section-title">Análisis de bordes</h2>
+
+          <div class="zoom-group">
+            ${hasFront ? `
+              <div>
+                <p class="zoom-subtitle">Front Edges</p>
+                <div class="edge-grid">
+                  ${renderEdgeCard(front.top, "TOP")}
+                  ${renderEdgeCard(front.bottom, "BOTTOM")}
+                  ${renderEdgeCard(front.left, "LEFT")}
+                  ${renderEdgeCard(front.right, "RIGHT")}
+                </div>
               </div>
-            `).join("")}
+            ` : ""}
+
+            ${hasBack ? `
+              <div>
+                <p class="zoom-subtitle">Back Edges</p>
+                <div class="edge-grid">
+                  ${renderEdgeCard(back.top, "TOP")}
+                  ${renderEdgeCard(back.bottom, "BOTTOM")}
+                  ${renderEdgeCard(back.left, "LEFT")}
+                  ${renderEdgeCard(back.right, "RIGHT")}
+                </div>
+              </div>
+            ` : ""}
           </div>
         </section>
       `;
@@ -611,9 +1077,33 @@
           </div>
         </div>
 
+        ${renderCentering(cert)}
         ${renderZoomSection(cert)}
         ${renderMicroscopeSection(cert)}
+        ${renderEdgesSection(cert)}
       `;
+    }
+
+    const headerForm = document.getElementById("headerSearchForm");
+    const headerInput = document.getElementById("headerCertInput");
+
+    if (headerForm && headerInput) {
+      headerForm.addEventListener("submit", function(event){
+        event.preventDefault();
+
+        const code = headerInput.value.trim();
+
+        if (!code) {
+          alert("Ingresá un número de certificado.");
+          return;
+        }
+
+        if (window.certificates && window.certificates[code]) {
+          window.location.href = "verify.html?id=" + encodeURIComponent(code);
+        } else {
+          alert("Certificado no encontrado.");
+        }
+      });
     }
   </script>
 </body>
