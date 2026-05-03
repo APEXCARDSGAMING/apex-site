@@ -3,860 +3,241 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>APEX Card Grading | Certificado</title>
   <meta name="description" content="Verificación de certificado APEX Card Grading." />
-
   <link rel="icon" type="image/png" href="assets/icon.png" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --bg:#050505;
-      --bg-soft:#0d0d0f;
-      --card:rgba(255,255,255,0.04);
-      --line:rgba(255,255,255,0.10);
-      --line-strong:rgba(255,255,255,0.18);
-      --white:#f7f7f7;
-      --muted:#a1a1aa;
-      --shadow:0 20px 60px rgba(0,0,0,.32);
-    }
-
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      font-family:"Inter", sans-serif;
-      color:var(--white);
-      background:linear-gradient(180deg, #08090d, #0d1017);
-    }
-
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
-
-    img,
-    video{
-      max-width:100%;
-      display:block;
-    }
-
-    .bg-grid{
-      position:fixed;
-      inset:0;
-      background:
-        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-      background-size:36px 36px;
-      mask-image:radial-gradient(circle at center, rgba(0,0,0,1), rgba(0,0,0,.1));
-      pointer-events:none;
-      z-index:-1;
-    }
-
-    .container{
-      width:min(1280px, 92vw);
-      margin:0 auto;
-    }
-
-    /* HEADER */
-    .site-header{
-      position:sticky;
-      top:0;
-      z-index:100;
-      background:rgba(5,5,5,.78);
-      backdrop-filter:blur(16px);
-      border-bottom:1px solid var(--line);
-    }
-
-    .nav-wrap{
-      min-height:84px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:24px;
-    }
-
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-    }
-
-    .brand-logo{
-      height:80px;
-      width:auto;
-    }
-
-    .nav{
-      display:flex;
-      gap:22px;
-      align-items:center;
-    }
-
-    .nav a{
-      color:#d8d8d8;
-      font-size:.96rem;
-    }
-
-    .nav a:hover{
-      color:#fff;
-    }
-
-    /* BUSCADOR HEADER */
-    .header-search{
-      display:flex;
-      align-items:center;
-      border:1px solid var(--line);
-      border-radius:16px;
-      overflow:hidden;
-      background:rgba(255,255,255,0.05);
-      transition:.2s ease;
-    }
-
-    .header-search:focus-within{
-      border-color:rgba(255,255,255,0.25);
-      box-shadow:0 0 0 3px rgba(255,255,255,0.05);
-    }
-
-    #headerCertInput{
-      height:44px;
-      width:220px;
-      padding:0 14px;
-      border:none;
-      background:transparent;
-      color:#fff;
-      font-size:.9rem;
-      outline:none;
-    }
-
-    #headerCertInput::placeholder{
-      color:rgba(255,255,255,0.4);
-    }
-
-    .header-search-btn{
-      height:44px;
-      padding:0 16px;
-      border:none;
-      border-left:1px solid var(--line);
-      background:#fff;
-      color:#000;
-      font-weight:600;
-      font-size:.9rem;
-      cursor:pointer;
-      transition:.2s ease;
-    }
-
-    .header-search-btn:hover{
-      background:#eaeaea;
-    }
-
-    /* PAGE */
-    .verify-page{
-      padding:42px 0 80px;
-    }
-
-    .verify-status{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,0.05);
-      border-radius:999px;
-      padding:10px 16px;
-      margin-bottom:24px;
-      font-weight:700;
-      color:var(--white);
-    }
-
-    .verify-layout{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:30px;
-      align-items:start;
-    }
-
-    .panel{
-      border-radius:30px;
-      background:rgba(255,255,255,0.03);
-      border:1px solid rgba(255,255,255,0.08);
-      box-shadow:var(--shadow);
-    }
-
-    /* LEFT */
-    .visual-panel{
-      min-height:760px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-    }
-
-    .visual-panel img,
-    .visual-panel video{
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      filter:drop-shadow(0 40px 100px rgba(0,0,0,0.8));
-    }
-
-    /* RIGHT */
-    .content-panel{
-      padding:30px;
-      display:flex;
-      flex-direction:column;
-      gap:20px;
-    }
-
-    .eyebrow{
-      font-size:12px;
-      letter-spacing:2px;
-      color:#aaa;
-      text-transform:uppercase;
-    }
-
-    .title-row{
-      display:flex;
-      justify-content:space-between;
-      gap:20px;
-      align-items:flex-start;
-    }
-
-    .card-title{
-      font-size:56px;
-      font-weight:900;
-      margin:0;
-      line-height:1;
-      letter-spacing:-0.05em;
-    }
-
-    .card-meta{
-      margin-top:10px;
-      color:#ccc;
-      line-height:1.65;
-    }
-
-    .grade-box{
-      padding:20px;
-      border-radius:22px;
-      background:rgba(255,255,255,0.05);
-      text-align:center;
-      min-width:220px;
-      border:1px solid rgba(255,255,255,0.08);
-    }
-
-    .grade-label{
-      font-size:12px;
-      color:#aaa;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-    }
-
-    .grade-value{
-      font-size:46px;
-      font-weight:900;
-      line-height:1.05;
-      margin-top:6px;
-    }
-
-    .grade-average{
-      margin-top:6px;
-      color:#d0d0d5;
-      font-size:.95rem;
-    }
-
-    .meta-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:15px;
-    }
-
-    .meta-card{
-      padding:16px;
-      border-radius:18px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-      line-height:1.6;
-    }
-
-    .meta-card b{
-      display:block;
-      margin-bottom:6px;
-      font-size:.82rem;
-      letter-spacing:.10em;
-      color:#aaa;
-    }
-
-    .subgrades-grid{
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:15px;
-    }
-
-    .subgrade-card{
-      text-align:center;
-      padding:15px;
-      border-radius:18px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-    }
-
-    .subgrade-label{
-      color:#aaa;
-      font-size:.82rem;
-      text-transform:uppercase;
-      letter-spacing:.10em;
-    }
-
-    .subgrade-value{
-      display:block;
-      font-size:30px;
-      font-weight:900;
-      margin-top:8px;
-    }
-
-    .text-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:15px;
-    }
-
-    .text-card{
-      padding:20px;
-      border-radius:18px;
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-      line-height:1.7;
-      color:#d0d0d5;
-    }
-
-    .text-card b{
-      display:block;
-      margin-bottom:10px;
-      color:var(--white);
-    }
-
-    /* EXTRA SECTIONS */
-    .section-block{
-      margin-top:30px;
-      padding:26px;
-    }
-
-    .section-title{
-      margin:0 0 18px;
-      font-size:1.45rem;
-      letter-spacing:-0.03em;
-    }
-
-    /* Centering */
-    .centering-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:18px;
-    }
-
-    .centering-card{
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-      border-radius:18px;
-      overflow:hidden;
-    }
-
-    .centering-card img{
-      width:100%;
-      aspect-ratio:0.714 / 1;
-      object-fit:cover;
-    }
-
-    .centering-card span{
-      display:block;
-      padding:10px 12px;
-      text-align:center;
-      color:#d8d8de;
-      font-size:.9rem;
-    }
-
-    /* Zoom / Corners */
-    .zoom-group{
-      display:grid;
-      gap:18px;
-    }
-
-    .zoom-subtitle{
-      font-size:.9rem;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:#aaa;
-      margin:0 0 10px;
-    }
-
-    .zoom-grid{
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:14px;
-    }
-
-    .corner-analysis-card{
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-      border-radius:20px;
-      overflow:hidden;
-    }
-
-    .corner-image-wrap{
-      position:relative;
-      background:#111;
-    }
-
-    .corner-image-wrap img{
-      width:100%;
-      aspect-ratio:1 / 1;
-      object-fit:cover;
-    }
-
-    .corner-topbar{
-      position:absolute;
-      top:10px;
-      left:12px;
-      right:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      z-index:3;
-    }
-
-    .corner-title{
-      font-size:.8rem;
-      font-weight:800;
-      color:#000000;
-      letter-spacing:.08em;
-            text-shadow:
-    -1px -1px 0 #ffffff,
-     1px -1px 0 #ffffff,
-    -1px  1px 0 #ffffff,
-     1px  1px 0 #ffffff;
-    }
-
-    .corner-score{
-      font-size:.95rem;
-      font-weight:900;
-      color:#ffffff;
-            text-shadow:
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000;
-    }
-
-  
-
-    .corner-metrics{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:12px;
-      border-top:1px solid rgba(255,255,255,0.06);
-    }
-
-    .corner-metric{
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(0,255,170,0.12);
-      border:1px solid rgba(0,255,170,0.18);
-      color:#7ef7d0;
-      font-size:.78rem;
-      font-weight:700;
-    }
-
-    .corner-defects{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:0 12px 12px;
-    }
-
-    .corner-defect{
-      padding:6px 10px;
-      border-radius:10px;
-      background:rgba(255,196,0,0.10);
-      border:1px solid rgba(255,196,0,0.18);
-      color:#f3c34a;
-      font-size:.76rem;
-      font-weight:700;
-    }
-
-    /* Microscopio */
-    .micro-grid{
-      display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:14px;
-    }
-
-    .micro-analysis-card{
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-      border-radius:20px;
-      overflow:hidden;
-    }
-
-    .micro-image-wrap{
-      position:relative;
-      background:#111;
-    }
-
-    .micro-image-wrap img{
-      width:100%;
-      aspect-ratio:1 / 1;
-      object-fit:cover;
-    }
-
-    .micro-topbar{
-      position:absolute;
-      top:10px;
-      left:12px;
-      right:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      z-index:3;
-    }
-
-    .micro-title{
-      font-size:.8rem;
-      font-weight:800;
-      color:#000000;
-      letter-spacing:.08em;
-            text-shadow:
-    -1px -1px 0 #ffffff,
-     1px -1px 0 #ffffff,
-    -1px  1px 0 #ffffff,
-     1px  1px 0 #ffffff;
-    }
-
-    .micro-score{
-      font-size:.95rem;
-      font-weight:900;
-      color:#ffffff;
-            text-shadow:
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000;
-    }
-
-    .micro-metrics{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:12px;
-      border-top:1px solid rgba(255,255,255,0.06);
-    }
-
-    .micro-metric{
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(0,255,170,0.12);
-      border:1px solid rgba(0,255,170,0.18);
-      color:#7ef7d0;
-      font-size:.78rem;
-      font-weight:700;
-    }
-
-    .micro-defects{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:0 12px 12px;
-    }
-
-    .micro-defect{
-      padding:6px 10px;
-      border-radius:10px;
-      background:rgba(255,196,0,0.10);
-      border:1px solid rgba(255,196,0,0.18);
-      color:#f3c34a;
-      font-size:.76rem;
-      font-weight:700;
-    }
-
-    /* Edges */
-    .edge-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:18px;
-    }
-
-    .edge-analysis-card{
-      background:rgba(255,255,255,0.04);
-      border:1px solid rgba(255,255,255,0.07);
-      border-radius:20px;
-      overflow:hidden;
-    }
-
-    .edge-image-wrap{
-      position:relative;
-      background:#111;
-    }
-
-    .edge-image-wrap img{
-      width:100%;
-      aspect-ratio:16 / 5;
-      object-fit:cover;
-    }
-
-    .edge-topbar{
-      position:absolute;
-      top:10px;
-      left:12px;
-      right:12px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      z-index:3;
-    }
-
-    .edge-title{
-      font-size:.82rem;
-      font-weight:800;
-      color:#000000;
-      letter-spacing:.08em;
-       text-shadow:
-    -1px -1px 0 #ffffff,
-     1px -1px 0 #ffffff,
-    -1px  1px 0 #ffffff,
-     1px  1px 0 #ffffff;
-    }
-
-    .edge-score{
-      font-size:.95rem;
-      font-weight:900;
-      color:#ffffff;
-       text-shadow:
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000;
-    }
-
-    .edge-metrics{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:12px;
-      border-top:1px solid rgba(255,255,255,0.06);
-    }
-
-    .edge-metric{
-      padding:6px 10px;
-      border-radius:999px;
-      background:rgba(0,255,170,0.12);
-      border:1px solid rgba(0,255,170,0.18);
-      color:#7ef7d0;
-      font-size:.78rem;
-      font-weight:700;
-    }
-
-    .edge-defects{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:0 12px 12px;
-    }
-
-    .edge-defect{
-      padding:6px 10px;
-      border-radius:10px;
-      background:rgba(255,196,0,0.10);
-      border:1px solid rgba(255,196,0,0.18);
-      color:#f3c34a;
-      font-size:.76rem;
-      font-weight:700;
-    }
-
-    .not-found{
-      max-width:700px;
-      margin:80px auto;
-      text-align:center;
-      padding:40px;
-      border-radius:28px;
-      background:rgba(255,255,255,0.03);
-      border:1px solid rgba(255,255,255,0.08);
-    }
-
-    .not-found h1{
-      margin:0 0 14px;
-      font-size:2rem;
-    }
-
-    .not-found p{
-      margin:0;
-      color:#c9c9d0;
-      line-height:1.7;
-    }
-
-    @media (max-width: 1100px){
-      .verify-layout{
-        grid-template-columns:1fr;
-      }
-
-      .title-row{
-        flex-direction:column;
-      }
-
-      .grade-box{
-        width:100%;
-      }
-    }
-
-    @media (max-width: 900px){
-      .subgrades-grid,
-      .text-grid,
-      .zoom-grid,
-      .micro-grid,
-      .meta-grid,
-      .centering-grid,
-      .edge-grid{
-        grid-template-columns:1fr 1fr;
-      }
-
-      .card-title{
-        font-size:42px;
-      }
-    }
-
-    @media (max-width: 640px){
-      .nav{
-        display:none;
-      }
-
-      .brand-logo{
-        height:38px;
-      }
-
-      .header-search{
-        width:100%;
-      }
-
-      #headerCertInput{
-        width:100%;
-      }
-
-      .subgrades-grid,
-      .text-grid,
-      .zoom-grid,
-      .micro-grid,
-      .meta-grid,
-      .centering-grid,
-      .edge-grid{
-        grid-template-columns:1fr;
-      }
-
-      .visual-panel{
-        min-height:auto;
-      }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
   <div class="bg-grid"></div>
 
   <header class="site-header">
     <div class="container nav-wrap">
-      <a href="index.html#top" class="brand">
+      <a href="index.html#top" class="brand" aria-label="Inicio APEX Card Grading">
         <img src="assets/Logo-Apex .png" alt="APEX Card Grading" class="brand-logo" />
       </a>
 
-      <nav class="nav">
+      <nav class="nav" aria-label="Navegación principal">
         <a href="index.html#escala">Escala</a>
         <a href="index.html#proceso">Proceso</a>
         <a href="index.html#precios">Precios</a>
         <a href="index.html#consultas">Consultas</a>
         <a href="index.html#contacto">Contacto</a>
+        <a href="my-collection.html" class="login-link">Mi colección</a>
       </nav>
 
       <form class="header-search" id="headerSearchForm">
-        <input
-          type="text"
-          id="headerCertInput"
-          placeholder="Ingresá tu código ACG"
-          aria-label="Buscar certificado"
-        />
+        <input type="text" id="headerCertInput" placeholder="Ingresá tu código ACG" aria-label="Buscar certificado" />
         <button type="submit" class="header-search-btn">Buscar</button>
       </form>
     </div>
   </header>
 
   <main class="verify-page">
-    <div class="container">
+    <div class="container-wide">
       <div id="certContainer">Cargando...</div>
     </div>
   </main>
 
-  <script src="data.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const SUPABASE_URL = "https://szhiimrrajvifumwkfpk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gRlfE1ScPrVD-XKO1A_mWA_M1tcOKD7";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("id");
+    const id = (params.get("id") || "").trim().toUpperCase();
     const container = document.getElementById("certContainer");
 
-    function normalizeCorner(corner){
-      if (!corner) return null;
-      if (typeof corner === "string") {
-        return { src: corner };
+    function safeText(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatValue(value, fallback = "-") {
+      if (value === null || value === undefined || value === "") return fallback;
+      return value;
+    }
+
+    function metricFromString(value) {
+      const text = String(value || "").trim();
+      if (!text) return null;
+      const parts = text.split(/\s+/);
+      if (parts.length === 1) return { label: parts[0], value: "" };
+      return { label: parts.slice(0, -1).join(" "), value: parts[parts.length - 1] };
+    }
+
+    function normalizeMetrics(metrics) {
+      if (!Array.isArray(metrics)) return [];
+      return metrics.map(metric => {
+        if (!metric) return null;
+        if (typeof metric === "string") return metricFromString(metric);
+        return { label: metric.label || metric.name || "", value: metric.value || metric.score || "" };
+      }).filter(item => item && (item.label || item.value));
+    }
+
+    function normalizeItem(item, fallbackTitle) {
+      if (!item) return null;
+      if (typeof item === "string") return { src: item, title: fallbackTitle || "CAPTURA", score: "", metrics: [], defects: [] };
+      const src = item.src || item.url || item.image_url || "";
+      if (!src) return null;
+      return {
+        src,
+        title: item.title || item.label || fallbackTitle || "CAPTURA",
+        score: item.score ?? "",
+        overlays: item.overlays || { hLine: true, vLine: true },
+        metrics: normalizeMetrics(item.metrics),
+        defects: Array.isArray(item.defects) ? item.defects.filter(Boolean) : [],
+        filename: item.filename || ""
+      };
+    }
+
+    function getByTitle(items, title) {
+      if (!Array.isArray(items)) return null;
+      const normalizedTitle = String(title).toUpperCase();
+      return items.find(item => String(item.title || item.filename || "").toUpperCase().includes(normalizedTitle)) || null;
+    }
+
+    function legacyFromAnalysisImages(value, cert) {
+      if (!value) return {};
+      if (typeof value === "string") {
+        try { value = JSON.parse(value); } catch (error) { return {}; }
       }
-      return corner;
+
+      if (value.zoomImages || value.centeringImages || value.edgeImages || value.microscopeImages) {
+        return value;
+      }
+
+      const legacy = {
+        folder_name: value.folder_name || null,
+        summary: value.summary || {},
+        centeringImages: {},
+        zoomImages: { front: {}, back: {} },
+        microscopeImages: [],
+        edgeImages: { front: {}, back: {} },
+        other: value.other || []
+      };
+
+      const main = value.main || {};
+      const centering = value.centering || {};
+      legacy.centeringImages.front = (centering.front && centering.front[0] && (centering.front[0].url || centering.front[0].src)) || (main.front && (main.front.url || main.front.src)) || cert.frontImage || "";
+      legacy.centeringImages.back = (centering.back && centering.back[0] && (centering.back[0].url || centering.back[0].src)) || (main.back && (main.back.url || main.back.src)) || cert.backImage || "";
+
+      const corners = value.corners || {};
+      ["front", "back"].forEach(side => {
+        const list = corners[side] || [];
+        legacy.zoomImages[side].topLeft = normalizeItem(getByTitle(list, "TOP LEFT"), "TOP LEFT");
+        legacy.zoomImages[side].topRight = normalizeItem(getByTitle(list, "TOP RIGHT"), "TOP RIGHT");
+        legacy.zoomImages[side].bottomLeft = normalizeItem(getByTitle(list, "BOTTOM LEFT"), "BOTTOM LEFT");
+        legacy.zoomImages[side].bottomRight = normalizeItem(getByTitle(list, "BOTTOM RIGHT"), "BOTTOM RIGHT");
+      });
+
+      const edges = value.edges || {};
+      ["front", "back"].forEach(side => {
+        const list = edges[side] || [];
+        legacy.edgeImages[side].top = normalizeItem(getByTitle(list, "TOP"), "TOP");
+        legacy.edgeImages[side].bottom = normalizeItem(getByTitle(list, "BOTTOM"), "BOTTOM");
+        legacy.edgeImages[side].left = normalizeItem(getByTitle(list, "LEFT"), "LEFT");
+        legacy.edgeImages[side].right = normalizeItem(getByTitle(list, "RIGHT"), "RIGHT");
+      });
+
+      legacy.microscopeImages = (value.microscope || []).map(item => normalizeItem(item)).filter(Boolean);
+      return legacy;
+    }
+
+    function mapSupabaseCertificate(row) {
+      const cert = {
+        certificateId: row.certificate_id,
+        status: row.status || "Verified Authentic",
+        finalGrade: row.final_grade || "En proceso",
+        averageScore: row.average_score ?? "-",
+        image: row.slab_image_url || row.front_image_url || row.back_image_url || "",
+        video: row.video_url || "",
+        frontImage: row.front_image_url || "",
+        backImage: row.back_image_url || "",
+        cardDetails: {
+          name: row.card_name || "Carta sin nombre",
+          year: row.card_year || "",
+          brand: row.brand || "",
+          set: row.set_name || "",
+          number: row.card_number || "",
+          variant: row.variant || ""
+        },
+        subgrades: {
+          surface: row.surface ?? "-",
+          corners: row.corners ?? "-",
+          edges: row.edges ?? "-",
+          centering: row.centering ?? "-"
+        },
+        technicalAssessment: row.technical_assessment || "El análisis técnico todavía no fue cargado para este certificado.",
+        securityNotice: row.security_notice || "This certificate is registered in the official APEX Card Grading database."
+      };
+
+      const legacy = legacyFromAnalysisImages(row.analysis_images, cert);
+      return Object.assign(cert, legacy);
+    }
+
+    function renderNotFound(message) {
+      container.innerHTML = `
+        <div class="not-found">
+          <h1>Certificado no encontrado</h1>
+          <p>${safeText(message || "Revisá que el código ingresado sea correcto o volvé al buscador principal.")}</p>
+        </div>
+      `;
     }
 
     function renderCentering(cert){
-      if (!cert.centeringImages) return "";
+      if (!cert.centeringImages || (!cert.centeringImages.front && !cert.centeringImages.back)) return "";
 
       return `
         <section class="panel section-block">
           <h2 class="section-title">Análisis de centrado</h2>
           <div class="centering-grid">
-            <div class="centering-card">
-              <img src="${cert.centeringImages.front}" alt="Centering frente">
-              <span>Frente</span>
-            </div>
-            <div class="centering-card">
-              <img src="${cert.centeringImages.back}" alt="Centering dorso">
-              <span>Dorso</span>
-            </div>
+            ${cert.centeringImages.front ? `
+              <div class="centering-card">
+                <img src="${safeText(cert.centeringImages.front)}" alt="Centering frente">
+                <span>Frente</span>
+              </div>` : ""}
+            ${cert.centeringImages.back ? `
+              <div class="centering-card">
+                <img src="${safeText(cert.centeringImages.back)}" alt="Centering dorso">
+                <span>Dorso</span>
+              </div>` : ""}
           </div>
         </section>
       `;
     }
 
     function renderCornerCard(corner, fallbackTitle) {
-      const item = normalizeCorner(corner);
-      if (!item || !item.src) return "";
+      const item = normalizeItem(corner, fallbackTitle);
+      if (!item) return "";
 
       const metrics = (item.metrics || [])
-        .map(metric => `<span class="corner-metric">${metric.label} ${metric.value}</span>`)
+        .map(metric => `<span class="corner-metric">${safeText(metric.label)} ${safeText(metric.value)}</span>`)
         .join("");
 
       const defects = (item.defects || [])
-        .map(defect => `<span class="corner-defect">${defect}</span>`)
+        .map(defect => `<span class="corner-defect">${safeText(defect)}</span>`)
         .join("");
 
       return `
         <div class="corner-analysis-card">
           <div class="corner-image-wrap">
-            <img src="${item.src}" alt="${item.title || fallbackTitle}">
-
+            <img src="${safeText(item.src)}" alt="${safeText(item.title || fallbackTitle)}">
             <div class="corner-topbar">
-              <span class="corner-title">${item.title || fallbackTitle}</span>
-              ${item.score ? `<span class="corner-score">${item.score}</span>` : ""}
+              <span class="corner-title">${safeText(item.title || fallbackTitle)}</span>
+              ${item.score !== "" ? `<span class="corner-score">${safeText(item.score)}</span>` : ""}
             </div>
-
-            ${item.overlays && item.overlays.hLine ? `<span class="corner-line-h"></span>` : ""}
-            ${item.overlays && item.overlays.vLine ? `<span class="corner-line-v"></span>` : ""}
           </div>
-
-          ${metrics ? `<div class="corner-metrics">${metrics}</div>` : ""}
+          ${metrics ? `<div class="corner-metrics">${metrics}</div>` : `<div class="corner-metrics"><span class="corner-metric no-defects">NO DEFECTS</span></div>`}
           ${defects ? `<div class="corner-defects">${defects}</div>` : ""}
         </div>
       `;
@@ -864,19 +245,15 @@
 
     function renderZoomSection(cert){
       if (!cert.zoomImages) return "";
-
       const front = cert.zoomImages.front || {};
       const back = cert.zoomImages.back || {};
-
       const hasFront = front.topLeft || front.topRight || front.bottomLeft || front.bottomRight;
       const hasBack = back.topLeft || back.topRight || back.bottomLeft || back.bottomRight;
-
       if (!hasFront && !hasBack) return "";
 
       return `
         <section class="panel section-block">
           <h2 class="section-title">Zoom de esquinas</h2>
-
           <div class="zoom-group">
             ${hasFront ? `
               <div>
@@ -887,9 +264,7 @@
                   ${renderCornerCard(front.bottomLeft, "BOTTOM LEFT")}
                   ${renderCornerCard(front.bottomRight, "BOTTOM RIGHT")}
                 </div>
-              </div>
-            ` : ""}
-
+              </div>` : ""}
             ${hasBack ? `
               <div>
                 <p class="zoom-subtitle">Reverso</p>
@@ -899,35 +274,31 @@
                   ${renderCornerCard(back.bottomLeft, "BOTTOM LEFT")}
                   ${renderCornerCard(back.bottomRight, "BOTTOM RIGHT")}
                 </div>
-              </div>
-            ` : ""}
+              </div>` : ""}
           </div>
         </section>
       `;
     }
 
     function renderMicroscopeCard(item) {
-      if (!item || !item.src) return "";
-
-      const metrics = (item.metrics || [])
-        .map(metric => `<span class="micro-metric">${metric.label} ${metric.value}</span>`)
+      const normalized = normalizeItem(item, "DETAIL");
+      if (!normalized) return "";
+      const metrics = (normalized.metrics || [])
+        .map(metric => `<span class="micro-metric">${safeText(metric.label)} ${safeText(metric.value)}</span>`)
         .join("");
-
-      const defects = (item.defects || [])
-        .map(defect => `<span class="micro-defect">${defect}</span>`)
+      const defects = (normalized.defects || [])
+        .map(defect => `<span class="micro-defect">${safeText(defect)}</span>`)
         .join("");
 
       return `
         <div class="micro-analysis-card">
           <div class="micro-image-wrap">
-            <img src="${item.src}" alt="${item.title || item.label || "Captura de microscopio"}">
-
+            <img src="${safeText(normalized.src)}" alt="${safeText(normalized.title)}">
             <div class="micro-topbar">
-              <span class="micro-title">${item.title || item.label || "DETAIL"}</span>
-              ${item.score ? `<span class="micro-score">${item.score}</span>` : ""}
+              <span class="micro-title">${safeText(normalized.title)}</span>
+              ${normalized.score !== "" ? `<span class="micro-score">${safeText(normalized.score)}</span>` : ""}
             </div>
           </div>
-
           ${metrics ? `<div class="micro-metrics">${metrics}</div>` : ""}
           ${defects ? `<div class="micro-defects">${defects}</div>` : ""}
         </div>
@@ -936,7 +307,6 @@
 
     function renderMicroscopeSection(cert){
       if (!cert.microscopeImages || !cert.microscopeImages.length) return "";
-
       return `
         <section class="panel section-block">
           <h2 class="section-title">Capturas de microscopio</h2>
@@ -948,26 +318,24 @@
     }
 
     function renderEdgeCard(edge, fallbackTitle) {
-      if (!edge || !edge.src) return "";
-
-      const metrics = (edge.metrics || [])
-        .map(item => `<span class="edge-metric">${item.label} ${item.value}</span>`)
+      const normalized = normalizeItem(edge, fallbackTitle);
+      if (!normalized) return "";
+      const metrics = (normalized.metrics || [])
+        .map(item => `<span class="edge-metric">${safeText(item.label)} ${safeText(item.value)}</span>`)
         .join("");
-
-      const defects = (edge.defects || [])
-        .map(item => `<span class="edge-defect">${item}</span>`)
+      const defects = (normalized.defects || [])
+        .map(item => `<span class="edge-defect">${safeText(item)}</span>`)
         .join("");
 
       return `
         <div class="edge-analysis-card">
           <div class="edge-image-wrap">
-            <img src="${edge.src}" alt="${edge.title || fallbackTitle}">
+            <img src="${safeText(normalized.src)}" alt="${safeText(normalized.title || fallbackTitle)}">
             <div class="edge-topbar">
-              <span class="edge-title">${edge.title || fallbackTitle}</span>
-              ${edge.score ? `<span class="edge-score">${edge.score}</span>` : ""}
+              <span class="edge-title">${safeText(normalized.title || fallbackTitle)}</span>
+              ${normalized.score !== "" ? `<span class="edge-score">${safeText(normalized.score)}</span>` : ""}
             </div>
           </div>
-
           ${metrics ? `<div class="edge-metrics">${metrics}</div>` : ""}
           ${defects ? `<div class="edge-defects">${defects}</div>` : ""}
         </div>
@@ -976,133 +344,167 @@
 
     function renderEdgesSection(cert) {
       if (!cert.edgeImages) return "";
-
       const front = cert.edgeImages.front || {};
       const back = cert.edgeImages.back || {};
-
-      const hasFront = front.top || front.bottom || front.left || front.right;
-      const hasBack = back.top || back.bottom || back.left || back.right;
-
+      const hasFront = front.top || front.bottom || front.left || front.right || front.topLeft || front.topRight || front.bottomLeft || front.bottomRight;
+      const hasBack = back.top || back.bottom || back.left || back.right || back.topLeft || back.topRight || back.bottomLeft || back.bottomRight;
       if (!hasFront && !hasBack) return "";
 
       return `
         <section class="panel section-block">
           <h2 class="section-title">Análisis de bordes</h2>
-
           <div class="zoom-group">
             ${hasFront ? `
               <div>
                 <p class="zoom-subtitle">Front Edges</p>
                 <div class="edge-grid">
-                  ${renderEdgeCard(front.top, "TOP")}
-                  ${renderEdgeCard(front.bottom, "BOTTOM")}
+                  ${renderEdgeCard(front.top || front.topLeft, "TOP")}
+                  ${renderEdgeCard(front.bottom || front.bottomLeft, "BOTTOM")}
                   ${renderEdgeCard(front.left, "LEFT")}
                   ${renderEdgeCard(front.right, "RIGHT")}
                 </div>
-              </div>
-            ` : ""}
-
+              </div>` : ""}
             ${hasBack ? `
               <div>
                 <p class="zoom-subtitle">Back Edges</p>
                 <div class="edge-grid">
-                  ${renderEdgeCard(back.top, "TOP")}
-                  ${renderEdgeCard(back.bottom, "BOTTOM")}
+                  ${renderEdgeCard(back.top || back.topLeft, "TOP")}
+                  ${renderEdgeCard(back.bottom || back.bottomLeft, "BOTTOM")}
                   ${renderEdgeCard(back.left, "LEFT")}
                   ${renderEdgeCard(back.right, "RIGHT")}
                 </div>
-              </div>
-            ` : ""}
+              </div>` : ""}
           </div>
         </section>
       `;
     }
 
-    if (!id || !window.certificates || !window.certificates[id]) {
-      container.innerHTML = `
-        <div class="not-found">
-          <h1>Certificado no encontrado</h1>
-          <p>Revisá que el código ingresado sea correcto o volvé al buscador principal.</p>
-        </div>
+    function renderSummarySection(cert) {
+      const summary = cert.summary || {};
+      const items = [
+        ["Centering", summary.centering || "A detailed centering summary has not been loaded yet.", "↔"],
+        ["Corners", summary.corners || "A detailed corners summary has not been loaded yet.", "○"],
+        ["Edges", summary.edges || "A detailed edges summary has not been loaded yet.", "≡"],
+        ["Surface", summary.surface || "A detailed surface summary has not been loaded yet.", "✎"]
+      ];
+      return `
+        <section class="panel section-block summary-block zone-analysis-block">
+          <h2 class="section-title">ZONE ANALYSIS</h2>
+          <div class="summary-grid zone-summary-grid">
+            ${items.map(([title, text, icon]) => `
+              <div class="summary-card zone-summary-card">
+                <div class="summary-card-head zone-summary-head">
+                  <div class="zone-title-wrap"><span class="zone-icon">${safeText(icon)}</span><b>${safeText(title)}</b></div>
+                </div>
+                <p>${safeText(text)}</p>
+              </div>
+            `).join("")}
+          </div>
+        </section>
       `;
-    } else {
-      const cert = window.certificates[id];
+    }
+
+    function gradeNumber(value) {
+      const parsed = parseFloat(String(value ?? "").replace(",", "."));
+      if (Number.isNaN(parsed)) return null;
+      return Math.max(0, Math.min(10, parsed));
+    }
+
+    function renderGradeBreakdown(cert) {
+      const rows = [
+        ["Surface", cert.subgrades.surface],
+        ["Corners", cert.subgrades.corners],
+        ["Edges", cert.subgrades.edges],
+        ["Centering", cert.subgrades.centering]
+      ];
+
+      return `
+        <section class="panel section-block grade-breakdown-block">
+          <div class="grade-breakdown-head">
+            <div>
+              <h2 class="section-title">Resumen final de notas</h2>
+              <p>Lectura rápida del resultado APEX: nota final, promedio y subgrades principales.</p>
+            </div>
+            <div class="grade-breakdown-final">
+              <span>Final Grade</span>
+              <strong>${safeText(cert.finalGrade)}</strong>
+              <small>Average ${safeText(cert.averageScore)}</small>
+            </div>
+          </div>
+
+          <div class="grade-breakdown-grid">
+            ${rows.map(([label, value]) => {
+              const numeric = gradeNumber(value);
+              const percent = numeric === null ? 0 : numeric * 10;
+              return `
+                <article class="grade-breakdown-card">
+                  <div class="grade-breakdown-row">
+                    <span>${safeText(label)}</span>
+                    <strong>${safeText(value)}</strong>
+                  </div>
+                  <div class="grade-breakdown-bar" aria-label="${safeText(label)} ${safeText(value)} sobre 10">
+                    <span style="width:${percent}%"></span>
+                  </div>
+                </article>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderCertificate(cert) {
+      const cardYear = formatValue(cert.cardDetails.year, "");
+      const cardBrand = formatValue(cert.cardDetails.brand, "");
+      const cardSet = formatValue(cert.cardDetails.set, "");
+      const cardNumber = formatValue(cert.cardDetails.number, "");
+      const cardVariant = formatValue(cert.cardDetails.variant, "");
 
       container.innerHTML = `
-        <div class="verify-status">${cert.status}</div>
-
+        <div class="verify-status">${safeText(cert.status)}</div>
         <div class="verify-layout">
           <div class="panel visual-panel">
             ${cert.video
-              ? `<video src="${cert.video}" autoplay muted loop playsinline></video>`
-              : `<img src="${cert.image}" alt="${cert.cardDetails.name}">`
+              ? `<video src="${safeText(cert.video)}" autoplay muted loop playsinline></video>`
+              : cert.image
+                ? `<img src="${safeText(cert.image)}" alt="${safeText(cert.cardDetails.name)}">`
+                : `<div class="image-placeholder">Imagen del slab pendiente de carga.</div>`
             }
           </div>
 
           <div class="panel content-panel">
             <div class="eyebrow">Official Certificate Record</div>
-
             <div class="title-row">
               <div>
-                <h1 class="card-title">${cert.cardDetails.name}</h1>
+                <h1 class="card-title">${safeText(cert.cardDetails.name)}</h1>
                 <div class="card-meta">
-                  ${cert.cardDetails.year} ${cert.cardDetails.brand}<br>
-                  ${cert.cardDetails.set}<br>
-                  ${cert.cardDetails.number}
+                  ${safeText(cardYear)} ${safeText(cardBrand)}<br>
+                  ${safeText(cardSet)}${cardVariant ? `<br>${safeText(cardVariant)}` : ""}<br>
+                  ${safeText(cardNumber)}
                 </div>
               </div>
-
               <div class="grade-box">
                 <div class="grade-label">Final Grade</div>
-                <div class="grade-value">${cert.finalGrade}</div>
-                <div class="grade-average">Average ${cert.averageScore}</div>
+                <div class="grade-value">${safeText(cert.finalGrade)}</div>
+                <div class="grade-average">Average ${safeText(cert.averageScore)}</div>
               </div>
             </div>
 
             <div class="meta-grid">
-              <div class="meta-card">
-                <b>Certificate ID</b>
-                ${cert.certificateId}
-              </div>
-
-              <div class="meta-card">
-                <b>Status</b>
-                ${cert.status}
-              </div>
+              <div class="meta-card"><b>Certificate ID</b>${safeText(cert.certificateId)}</div>
+              <div class="meta-card"><b>Status</b>${safeText(cert.status)}</div>
             </div>
 
             <div class="subgrades-grid">
-              <div class="subgrade-card">
-                <span class="subgrade-label">Surface</span>
-                <span class="subgrade-value">${cert.subgrades.surface}</span>
-              </div>
-
-              <div class="subgrade-card">
-                <span class="subgrade-label">Corners</span>
-                <span class="subgrade-value">${cert.subgrades.corners}</span>
-              </div>
-
-              <div class="subgrade-card">
-                <span class="subgrade-label">Edges</span>
-                <span class="subgrade-value">${cert.subgrades.edges}</span>
-              </div>
-
-              <div class="subgrade-card">
-                <span class="subgrade-label">Centering</span>
-                <span class="subgrade-value">${cert.subgrades.centering}</span>
-              </div>
+              <div class="subgrade-card"><span class="subgrade-label">Surface</span><span class="subgrade-value">${safeText(cert.subgrades.surface)}</span></div>
+              <div class="subgrade-card"><span class="subgrade-label">Corners</span><span class="subgrade-value">${safeText(cert.subgrades.corners)}</span></div>
+              <div class="subgrade-card"><span class="subgrade-label">Edges</span><span class="subgrade-value">${safeText(cert.subgrades.edges)}</span></div>
+              <div class="subgrade-card"><span class="subgrade-label">Centering</span><span class="subgrade-value">${safeText(cert.subgrades.centering)}</span></div>
             </div>
 
             <div class="text-grid">
-              <div class="text-card">
-                <b>Technical Assessment</b>
-                ${cert.technicalAssessment}
-              </div>
-
-              <div class="text-card">
-                <b>Security Notice</b>
-                ${cert.securityNotice}
-              </div>
+              <div class="text-card"><b>Technical Assessment</b>${safeText(cert.technicalAssessment)}</div>
+              <div class="text-card"><b>Security Notice</b>${safeText(cert.securityNotice)}</div>
             </div>
           </div>
         </div>
@@ -1111,30 +513,49 @@
         ${renderZoomSection(cert)}
         ${renderMicroscopeSection(cert)}
         ${renderEdgesSection(cert)}
+        ${renderSummarySection(cert)}
+        
       `;
     }
 
-    const headerForm = document.getElementById("headerSearchForm");
-    const headerInput = document.getElementById("headerCertInput");
+    async function loadCertificate() {
+      if (!id) {
+        renderNotFound("Falta el código del certificado en la URL. Probá con verify.html?id=ACG-000000003");
+        return;
+      }
 
-    if (headerForm && headerInput) {
-      headerForm.addEventListener("submit", function(event){
+      const { data, error } = await supabaseClient
+        .from("certificates")
+        .select("*")
+        .eq("certificate_id", id)
+        .single();
+
+      if (error || !data) {
+        console.error(error);
+        renderNotFound("No encontramos ningún certificado con el código " + id + ".");
+        return;
+      }
+
+      renderCertificate(mapSupabaseCertificate(data));
+    }
+
+    function setupHeaderSearch() {
+      const headerForm = document.getElementById("headerSearchForm");
+      const headerInput = document.getElementById("headerCertInput");
+      if (!headerForm || !headerInput) return;
+      headerForm.addEventListener("submit", function(event) {
         event.preventDefault();
-
-        const code = headerInput.value.trim();
-
+        const code = headerInput.value.trim().toUpperCase();
         if (!code) {
           alert("Ingresá un número de certificado.");
           return;
         }
-
-        if (window.certificates && window.certificates[code]) {
-          window.location.href = "verify.html?id=" + encodeURIComponent(code);
-        } else {
-          alert("Certificado no encontrado.");
-        }
+        window.location.href = "verify.html?id=" + encodeURIComponent(code);
       });
     }
+
+    setupHeaderSearch();
+    loadCertificate();
   </script>
 </body>
 </html>

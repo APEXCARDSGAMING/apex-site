@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Supabase APEX</title>
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <main class="test-page">
+    <div class="container">
+      <p class="eyebrow">APEX Database Test</p>
+      <h1>Test Supabase</h1>
+      <div id="result" class="panel test-card loading">Buscando certificado...</div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://szhiimrrajvifumwkfpk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gRlfE1ScPrVD-XKO1A_mWA_M1tcOKD7";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function loadCertificate() {
+      const result = document.getElementById("result");
+      const params = new URLSearchParams(window.location.search);
+      const certificateId = params.get("id");
+
+      if (!certificateId) {
+        result.innerHTML = `
+          <h2 class="error">Falta el código del certificado</h2>
+          <p>Probá entrando así:</p>
+          <p><strong>test-supabase.html?id=ACG-000000003</strong></p>
+        `;
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("certificates")
+        .select("*")
+        .eq("certificate_id", certificateId)
+        .single();
+
+      if (error || !data) {
+        result.innerHTML = `
+          <h2 class="error">Certificado no encontrado</h2>
+          <p>No encontramos ningún certificado con el código:</p>
+          <p><strong>${certificateId}</strong></p>
+        `;
+        console.error(error);
+        return;
+      }
+
+      result.innerHTML = `
+        <h2>${data.card_name}</h2>
+        <div class="grade-pill">${data.final_grade}</div>
+        <div class="row"><strong>Certificado:</strong> ${data.certificate_id}</div>
+        <div class="row"><strong>Estado:</strong> ${data.status}</div>
+        <div class="row"><strong>Promedio:</strong> ${data.average_score}</div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,.12);margin:24px 0;">
+        <div class="row"><strong>Surface:</strong> ${data.surface}</div>
+        <div class="row"><strong>Corners:</strong> ${data.corners}</div>
+        <div class="row"><strong>Edges:</strong> ${data.edges}</div>
+        <div class="row"><strong>Centering:</strong> ${data.centering}</div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,.12);margin:24px 0;">
+        <div class="row"><strong>Análisis técnico:</strong></div>
+        <p>${data.technical_assessment}</p>
+      `;
+    }
+
+    loadCertificate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX Card Grading | Mi colección</title>
+  <meta name="description" content="Colección privada APEX Card Grading." />
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html#top" class="brand" aria-label="Inicio APEX Card Grading">
+        <img src="assets/Logo-Apex .png" alt="APEX Card Grading" class="brand-logo" />
+      </a>
+
+      <nav class="nav" aria-label="Navegación principal">
+        <a href="index.html#escala">Escala</a>
+        <a href="index.html#proceso">Proceso</a>
+        <a href="index.html#precios">Precios</a>
+        <a href="verify.html">Verificar</a>
+        <a href="my-collection.html" class="login-link">Mi colección</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <section class="account-hero">
+        <div>
+          <div class="eyebrow">Collector Account</div>
+          <h1>Mi colección APEX</h1>
+          <p class="subtitle">Ingresá con tu cuenta para ver tus cartas certificadas y reclamar nuevas piezas usando el código ACG + la clave privada entregada por APEX.</p>
+        </div>
+      </section>
+
+      <section id="authSection" class="auth-layout">
+        <div class="panel auth-card">
+          <h2 class="section-title">Iniciar sesión</h2>
+          <div class="form-grid">
+            <label>Email
+              <input id="loginEmail" type="email" autocomplete="email" placeholder="tu@email.com" />
+            </label>
+            <label>Contraseña
+              <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" />
+            </label>
+          </div>
+          <div class="actions">
+            <button id="loginBtn" class="btn-primary">Entrar</button>
+          </div>
+          <div id="loginMessage" class="message hidden"></div>
+        </div>
+
+        <div class="panel auth-card">
+          <h2 class="section-title">Crear cuenta</h2>
+          <div class="form-grid">
+            <label>Nombre
+              <input id="signupName" type="text" autocomplete="name" placeholder="Nombre y apellido" />
+            </label>
+            <label>Email
+              <input id="signupEmail" type="email" autocomplete="email" placeholder="tu@email.com" />
+            </label>
+            <label>Contraseña
+              <input id="signupPassword" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" />
+            </label>
+          </div>
+          <div class="actions">
+            <button id="signupBtn" class="btn-secondary">Crear cuenta</button>
+          </div>
+          <div class="note">Para la etapa de prueba, si Supabase te pide confirmar email, revisá el correo o desactivá temporalmente la confirmación en Authentication.</div>
+          <div id="signupMessage" class="message hidden"></div>
+        </div>
+      </section>
+
+      <section id="appSection" class="hidden">
+        <div class="app-top">
+          <div class="user-pill" id="userEmail">Usuario</div>
+          <button id="logoutBtn" class="btn-danger">Cerrar sesión</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <aside class="panel claim-card">
+            <h2 class="section-title">Reclamar carta</h2>
+            <div class="form-grid">
+              <label>Código ACG
+                <input id="claimCertId" type="text" placeholder="ACG-000000004" />
+              </label>
+              <label>Clave privada
+                <input id="claimKey" type="text" placeholder="APEX-XXXX-XXXX-XXXX" />
+              </label>
+            </div>
+            <div class="actions">
+              <button id="claimBtn" class="btn-primary">Agregar a mi colección</button>
+            </div>
+            <div class="note">La clave privada se usa una sola vez. Después de reclamar o transferir una carta, APEX genera una nueva clave interna para evitar reutilizaciones.</div>
+            <div id="claimMessage" class="message hidden"></div>
+          </aside>
+
+          <section>
+            <div class="stat-grid">
+              <div class="stat"><b id="statTotal">0</b><span>Cartas</span></div>
+              <div class="stat"><b id="statBest">-</b><span>Mejor nota</span></div>
+              <div class="stat"><b id="statAvg">-</b><span>Promedio</span></div>
+            </div>
+
+            <div class="panel stats-card">
+              <h2 class="section-title">Cartas registradas</h2>
+              <div id="collectionGrid" class="collection-grid"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://szhiimrrajvifumwkfpk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gRlfE1ScPrVD-XKO1A_mWA_M1tcOKD7";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const el = (id) => document.getElementById(id);
+
+    function showMessage(id, type, text){
+      const box = el(id);
+      box.className = "message " + (type || "");
+      box.textContent = text;
+      box.classList.remove("hidden");
+    }
+
+    function hideMessage(id){
+      const box = el(id);
+      box.classList.add("hidden");
+      box.textContent = "";
+    }
+
+    function formatValue(value, fallback = "-"){
+      if (value === null || value === undefined || value === "") return fallback;
+      return value;
+    }
+
+    function getImage(cert){
+      return cert.slab_image_url || cert.front_image_url || cert.back_image_url || "";
+    }
+
+    function renderStats(items){
+      el("statTotal").textContent = items.length;
+
+      const scores = items
+        .map(item => Number(item.average_score))
+        .filter(num => !Number.isNaN(num));
+
+      if (!scores.length) {
+        el("statBest").textContent = "-";
+        el("statAvg").textContent = "-";
+        return;
+      }
+
+      const best = Math.max(...scores);
+      const avg = scores.reduce((a,b) => a + b, 0) / scores.length;
+
+      el("statBest").textContent = best.toFixed(2).replace(".00", "");
+      el("statAvg").textContent = avg.toFixed(2).replace(".00", "");
+    }
+
+    function renderCollection(items){
+      const grid = el("collectionGrid");
+
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="empty">
+            Todavía no tenés cartas en tu colección.<br>
+            Usá el código ACG y la clave privada para reclamar tu primera carta.
+          </div>
+        `;
+        renderStats([]);
+        return;
+      }
+
+      renderStats(items);
+
+      grid.innerHTML = items.map(item => {
+        const img = getImage(item);
+        const certId = item.certificate_id;
+        return `
+          <article class="cert-card">
+            <div class="cert-img">
+              ${img ? `<img src="${img}" alt="${formatValue(item.card_name, certId)}" onerror="this.style.display='none'; this.parentElement.textContent='SIN IMAGEN';">` : "SIN IMAGEN"}
+            </div>
+            <div class="cert-info">
+              <h3>${formatValue(item.card_name, "Carta APEX")}</h3>
+              <div class="cert-meta">
+                <strong>${certId}</strong><br>
+                ${formatValue(item.card_year, "")} ${formatValue(item.brand, "")}<br>
+                ${formatValue(item.set_name, "")}<br>
+                ${formatValue(item.card_number, "")} ${formatValue(item.variant, "")}
+              </div>
+              <div class="grade-pill">${formatValue(item.final_grade, "Sin nota")}</div>
+              <div class="actions">
+                <a href="verify.html?id=${encodeURIComponent(certId)}" target="_blank">
+                  <button type="button" class="btn-secondary">Ver certificado</button>
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    async function loadCollection(){
+      const { data: ownerRows, error: ownerError } = await supabaseClient
+        .from("certificate_ownerships")
+        .select("certificate_id, acquired_at")
+        .eq("is_current_owner", true)
+        .order("acquired_at", { ascending:false });
+
+      if (ownerError) {
+        console.error(ownerError);
+        el("collectionGrid").innerHTML = `
+          <div class="empty">No pude cargar tu colección. Revisá que hayas corrido el SQL de usuarios en Supabase.</div>
+        `;
+        return;
+      }
+
+      const ids = (ownerRows || []).map(row => row.certificate_id);
+
+      if (!ids.length) {
+        renderCollection([]);
+        return;
+      }
+
+      const { data: certRows, error: certError } = await supabaseClient
+        .from("certificates")
+        .select("certificate_id,status,final_grade,average_score,surface,corners,edges,centering,card_name,card_year,brand,set_name,card_number,variant,front_image_url,back_image_url,slab_image_url")
+        .in("certificate_id", ids);
+
+      if (certError) {
+        console.error(certError);
+        el("collectionGrid").innerHTML = `
+          <div class="empty">No pude cargar los certificados de tu colección.</div>
+        `;
+        return;
+      }
+
+      const byId = new Map((certRows || []).map(cert => [cert.certificate_id, cert]));
+      const merged = (ownerRows || [])
+        .map(row => ({ ...byId.get(row.certificate_id), acquired_at: row.acquired_at }))
+        .filter(item => item && item.certificate_id);
+
+      renderCollection(merged);
+    }
+
+    async function refreshSession(){
+      const { data } = await supabaseClient.auth.getSession();
+      const session = data.session;
+
+      if (!session) {
+        el("authSection").classList.remove("hidden");
+        el("appSection").classList.add("hidden");
+        return;
+      }
+
+      el("authSection").classList.add("hidden");
+      el("appSection").classList.remove("hidden");
+      el("userEmail").textContent = session.user.email;
+      await loadCollection();
+    }
+
+    async function login(){
+      hideMessage("loginMessage");
+      const email = el("loginEmail").value.trim();
+      const password = el("loginPassword").value;
+
+      if (!email || !password) {
+        showMessage("loginMessage", "bad", "Completá email y contraseña.");
+        return;
+      }
+
+      el("loginBtn").disabled = true;
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      el("loginBtn").disabled = false;
+
+      if (error) {
+        showMessage("loginMessage", "bad", error.message);
+        return;
+      }
+
+      await refreshSession();
+    }
+
+    async function signup(){
+      hideMessage("signupMessage");
+      const fullName = el("signupName").value.trim();
+      const email = el("signupEmail").value.trim();
+      const password = el("signupPassword").value;
+
+      if (!email || !password) {
+        showMessage("signupMessage", "bad", "Completá email y contraseña.");
+        return;
+      }
+
+      if (password.length < 6) {
+        showMessage("signupMessage", "bad", "La contraseña tiene que tener al menos 6 caracteres.");
+        return;
+      }
+
+      el("signupBtn").disabled = true;
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } }
+      });
+      el("signupBtn").disabled = false;
+
+      if (error) {
+        showMessage("signupMessage", "bad", error.message);
+        return;
+      }
+
+      if (data.session) {
+        showMessage("signupMessage", "good", "Cuenta creada correctamente.");
+        await refreshSession();
+      } else {
+        showMessage("signupMessage", "good", "Cuenta creada. Revisá tu email para confirmar el acceso.");
+      }
+    }
+
+    async function logout(){
+      await supabaseClient.auth.signOut();
+      await refreshSession();
+    }
+
+    async function claimCertificate(){
+      hideMessage("claimMessage");
+      const certificateId = el("claimCertId").value.trim().toUpperCase();
+      const transferKey = el("claimKey").value.trim().toUpperCase();
+
+      if (!certificateId || !transferKey) {
+        showMessage("claimMessage", "bad", "Completá el código ACG y la clave privada.");
+        return;
+      }
+
+      const confirmClaim = confirm(`¿Querés agregar ${certificateId} a tu colección APEX?`);
+      if (!confirmClaim) return;
+
+      el("claimBtn").disabled = true;
+      const { data, error } = await supabaseClient.rpc("claim_or_transfer_certificate", {
+        p_certificate_id: certificateId,
+        p_transfer_key: transferKey
+      });
+      el("claimBtn").disabled = false;
+
+      if (error) {
+        showMessage("claimMessage", "bad", error.message);
+        return;
+      }
+
+      showMessage("claimMessage", "good", data?.message || "Carta agregada correctamente.");
+      el("claimCertId").value = "";
+      el("claimKey").value = "";
+      await loadCollection();
+    }
+
+    el("loginBtn").addEventListener("click", login);
+    el("signupBtn").addEventListener("click", signup);
+    el("logoutBtn").addEventListener("click", logout);
+    el("claimBtn").addEventListener("click", claimCertificate);
+
+    ["loginEmail", "loginPassword"].forEach(id => {
+      el(id).addEventListener("keydown", event => {
+        if (event.key === "Enter") login();
+      });
+    });
+
+    ["signupName", "signupEmail", "signupPassword"].forEach(id => {
+      el(id).addEventListener("keydown", event => {
+        if (event.key === "Enter") signup();
+      });
+    });
+
+    ["claimCertId", "claimKey"].forEach(id => {
+      el(id).addEventListener("keydown", event => {
+        if (event.key === "Enter") claimCertificate();
+      });
+    });
+
+    supabaseClient.auth.onAuthStateChange(() => {
+      refreshSession();
+    });
+
+    refreshSession();
+  </script>
+</body>
+</html>
+

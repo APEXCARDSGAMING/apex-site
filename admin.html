@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX Admin | Certificados</title>
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="container admin-shell">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <small>APEX Card Grading</small>
+        <h1>Panel Admin</h1>
+      </div>
+
+      <div class="top-actions hidden" id="topActions">
+        <span class="user-pill" id="userEmail"></span>
+        <button class="btn-secondary" id="openVerifyBtn" type="button">Ver certificado</button>
+        <button class="btn-danger" id="logoutBtn" type="button">Salir</button>
+      </div>
+    </header>
+
+    <section class="panel login-panel" id="loginPanel">
+      <h2 style="margin-top:0">Ingresar al admin</h2>
+      <p class="hint">Usá el usuario que creaste en Supabase Authentication.</p>
+
+      <div style="margin-top:18px">
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="tu@email.com" autocomplete="email" />
+      </div>
+
+      <div style="margin-top:14px">
+        <label>Contraseña</label>
+        <input id="loginPassword" type="password" placeholder="Contraseña" autocomplete="current-password" />
+      </div>
+
+      <div class="toolbar">
+        <button class="btn-primary" id="loginBtn" type="button">Entrar</button>
+      </div>
+
+      <div id="loginMessage" class="message"></div>
+    </section>
+
+    <section class="panel admin-panel hidden" id="adminPanel">
+      <div class="toolbar" style="margin-top:0">
+        <button class="btn-primary" id="saveBtn" type="button">Guardar certificado</button>
+        <button class="btn-secondary" id="loadBtn" type="button">Buscar / editar existente</button>
+        <button class="btn-secondary" id="genNextIdBtn" type="button">Generar próximo código ACG</button>
+        <button class="btn-secondary" id="clearBtn" type="button">Limpiar formulario</button>
+      </div>
+
+      <div id="adminMessage" class="message"></div>
+
+      <h2 class="section-title">Datos principales</h2>
+      <div class="admin-grid">
+        <div>
+          <label>Certificate ID</label>
+          <input id="certificate_id" placeholder="ACG-000000004" />
+        </div>
+
+        <div>
+          <label>Status</label>
+          <select id="status">
+            <option>Verified Authentic</option>
+            <option>In Process</option>
+            <option>Not Authentic</option>
+            <option>Archived</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Final Grade</label>
+          <input id="final_grade" placeholder="9 MINT" />
+        </div>
+
+        <div>
+          <label>Average Score</label>
+          <input id="average_score" type="number" step="0.01" placeholder="9.20" />
+        </div>
+
+        <div class="checkbox-row">
+          <input id="public_visible" type="checkbox" checked />
+          <label for="public_visible">Visible públicamente</label>
+        </div>
+      </div>
+
+      <h2 class="section-title">Clave privada y QR público</h2>
+      <p class="hint">La clave privada sirve para reclamar o transferir la carta. El QR no incluye esa clave: solo abre el certificado público verificable.</p>
+      <div class="admin-grid">
+        <div class="full">
+          <label>Transfer Key privada</label>
+          <div class="copy-row">
+            <input id="transfer_key" readonly placeholder="APEX-XXXX-XXXX-XXXX" />
+            <button class="btn-secondary" id="copyTransferKeyBtn" type="button">Copiar</button>
+          </div>
+          <div class="private-note">
+            Guardala solo para vos o entregala al cliente en una tarjeta privada. Si generás una nueva para el mismo certificado, reemplaza la anterior.
+          </div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn-secondary" id="generateTransferKeyBtn" type="button">Generar clave + QR</button>
+        <button class="btn-secondary" id="loadTransferKeyBtn" type="button">Ver clave guardada</button>
+      </div>
+
+      <div class="qr-panel">
+        <div class="qr-info">
+          <h3>QR del certificado</h3>
+          <p>Este QR apunta a la verificación online del código ACG. Es el que podés imprimir en el label, certificado físico o tarjeta de entrega.</p>
+          <label>URL pública del QR</label>
+          <div class="copy-row">
+            <input id="qr_url" readonly placeholder="https://apexcardgrading.com.ar/verify.html?id=ACG-000000000" />
+            <button class="btn-secondary" id="copyQrUrlBtn" type="button">Copiar URL</button>
+          </div>
+          <div class="toolbar qr-toolbar">
+            <button class="btn-secondary" id="generateQrBtn" type="button">Generar QR único</button>
+            <button class="btn-secondary" id="downloadQrBtn" type="button" disabled>Descargar PNG</button>
+          </div>
+          <small class="qr-note">El QR queda fijo para el Certificate ID. Si ya lo imprimiste, no cambies ese código ACG.</small>
+          <small id="qrLockStatus" class="qr-note">Todavía no hay QR generado para este certificado.</small>
+        </div>
+        <div class="qr-preview-card">
+          <canvas id="certificateQrCanvas" width="420" height="420" aria-label="QR del certificado APEX"></canvas>
+          <div id="qrPlaceholder" class="qr-placeholder">Generá un código ACG para ver el QR.</div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Subgrades</h2>
+      <div class="admin-grid">
+        <div><label>Surface</label><input id="surface" type="number" step="0.01" placeholder="10" /></div>
+        <div><label>Corners</label><input id="corners" type="number" step="0.01" placeholder="9.5" /></div>
+        <div><label>Edges</label><input id="edges" type="number" step="0.01" placeholder="9.5" /></div>
+        <div><label>Centering</label><input id="centering" type="number" step="0.01" placeholder="10" /></div>
+      </div>
+
+      <h2 class="section-title">Datos de la carta</h2>
+      <div class="admin-grid">
+        <div><label>Nombre</label><input id="card_name" placeholder="Charizard" /></div>
+        <div><label>Año</label><input id="card_year" type="number" placeholder="2016" /></div>
+        <div><label>Brand</label><input id="brand" placeholder="Pokémon" /></div>
+        <div><label>Set</label><input id="set_name" placeholder="XY Evolutions" /></div>
+        <div><label>Número</label><input id="card_number" placeholder="#11/108" /></div>
+        <div><label>Variante</label><input id="variant" placeholder="Reverse Holo" /></div>
+      </div>
+
+      <h2 class="section-title">Imágenes / video</h2>
+      <p class="hint">Podés pegar una URL manualmente o subir archivos directo a Supabase Storage. Al subir, el sistema completa el campo de URL automáticamente.</p>
+      <div class="admin-grid">
+        <div><label>Front image URL</label><input id="front_image_url" placeholder="https://.../front.webp" /></div>
+        <div><label>Back image URL</label><input id="back_image_url" placeholder="https://.../back.webp" /></div>
+        <div><label>Slab image URL</label><input id="slab_image_url" placeholder="https://.../slab.webp" /></div>
+        <div><label>Video URL opcional</label><input id="video_url" placeholder="https://.../video.mp4" /></div>
+      </div>
+
+      <div class="upload-panel">
+        <div class="upload-panel-head">
+          <div>
+            <h3>Subida rápida a Storage</h3>
+            <p>Usa el bucket público <strong>apex-certificates</strong>. Las imágenes se optimizan antes de subir para mejorar la carga de la web.</p>
+          </div>
+        </div>
+
+        <div class="upload-grid">
+          <div class="upload-card">
+            <label for="frontUpload">Frente de la carta</label>
+            <input id="frontUpload" type="file" accept="image/*" />
+            <button class="btn-secondary upload-btn" type="button" data-upload-input="frontUpload" data-upload-target="front_image_url" data-upload-kind="front">Subir frente</button>
+            <small id="frontUploadStatus" class="upload-status">JPG, PNG o WEBP recomendado.</small>
+          </div>
+
+          <div class="upload-card">
+            <label for="backUpload">Dorso de la carta</label>
+            <input id="backUpload" type="file" accept="image/*" />
+            <button class="btn-secondary upload-btn" type="button" data-upload-input="backUpload" data-upload-target="back_image_url" data-upload-kind="back">Subir dorso</button>
+            <small id="backUploadStatus" class="upload-status">JPG, PNG o WEBP recomendado.</small>
+          </div>
+
+          <div class="upload-card">
+            <label for="slabUpload">Imagen del slab</label>
+            <input id="slabUpload" type="file" accept="image/*" />
+            <button class="btn-secondary upload-btn" type="button" data-upload-input="slabUpload" data-upload-target="slab_image_url" data-upload-kind="slab">Subir slab</button>
+            <small id="slabUploadStatus" class="upload-status">Ideal para mostrar en verify.html.</small>
+          </div>
+
+          <div class="upload-card">
+            <label for="videoUpload">Video opcional</label>
+            <input id="videoUpload" type="file" accept="video/mp4,video/webm,video/quicktime" />
+            <button class="btn-secondary upload-btn" type="button" data-upload-input="videoUpload" data-upload-target="video_url" data-upload-kind="video">Subir video</button>
+            <small id="videoUploadStatus" class="upload-status">MP4 o WEBM recomendado.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-panel analysis-import-panel">
+        <div class="upload-panel-head">
+          <div>
+            <h3>Importar carpeta de análisis visual</h3>
+            <p>Seleccioná la carpeta de la carta, por ejemplo <strong>CHARIZARD-002</strong>. Estándar APEX: 21 imágenes exactas: slab, centering-front/back, 8 esquinas, 3 microscopio y 8 bordes.</p>
+          </div>
+        </div>
+
+        <div class="analysis-import-actions">
+          <input id="analysisFolderUpload" type="file" accept="image/*" webkitdirectory directory multiple />
+          <button class="btn-secondary" id="importAnalysisFolderBtn" type="button">Subir carpeta de análisis</button>
+          <button class="btn-secondary" id="clearAnalysisImagesBtn" type="button">Limpiar análisis visual</button>
+        </div>
+        <small id="analysisFolderUploadStatus" class="upload-status">Elegí la carpeta local de la carta con el estándar final de 21 imágenes APEX.</small>
+
+        <div id="analysisPreview" class="analysis-preview hidden"></div>
+
+        <div id="analysisEditor" class="analysis-editor hidden"></div>
+
+        <div id="zoneAnalysisEditor" class="analysis-editor hidden"></div>
+
+        <details class="analysis-json-details">
+          <summary>Ver / editar JSON del análisis visual</summary>
+          <textarea id="analysis_images" class="textarea-small" placeholder='{"summary":{"centering":"","corners":"","edges":"","surface":""},"zoomImages":{"front":{},"back":{}},"edgeImages":{"front":{},"back":{}}}'></textarea>
+        </details>
+      </div>
+
+      <h2 class="section-title">Textos</h2>
+      <div class="admin-grid">
+        <div>
+          <label>Technical Assessment</label>
+          <textarea id="technical_assessment" class="textarea-small" placeholder="La carta presenta..."></textarea>
+        </div>
+        <div>
+          <label>Security Notice</label>
+          <textarea id="security_notice" class="textarea-small">Este certificado ha sido emitido por APEX Card Grading e incluye un registro digital único. Puede verificarse mediante su código en nuestro sistema online. Cualquier intento de duplicación, alteración o falsificación invalida automáticamente su autenticidad.</textarea>
+        </div>
+      </div>
+
+      <h2 class="section-title">Carga avanzada pendiente</h2>
+      <p class="hint">Ahora el informe visual se importa desde carpetas. Si querés personalizar títulos, score, métricas, defectos y resúmenes, podés hacerlo desde el JSON del análisis visual.</p>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://szhiimrrajvifumwkfpk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gRlfE1ScPrVD-XKO1A_mWA_M1tcOKD7";
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const STORAGE_BUCKET = "apex-certificates";
+    const IMAGE_MAX_SIZE = 1800;
+    const IMAGE_QUALITY = 0.86;
+    const PUBLIC_SITE_BASE_URL = "https://apexcardgrading.com.ar";
+    const QR_STORAGE_PREFIX = "apex_qr_generated_v1_";
+    const APEX_STANDARD_ANALYSIS_FILES = [
+      "slab",
+      "centering-front", "centering-back",
+      "front-topLeft", "front-topRight", "front-bottomLeft", "front-bottomRight",
+      "back-topLeft", "back-topRight", "back-bottomLeft", "back-bottomRight",
+      "micro-1", "micro-2", "micro-3",
+      "front-top-edge", "front-bottom-edge", "front-left-edge", "front-right-edge",
+      "back-top-edge", "back-bottom-edge", "back-left-edge", "back-right-edge"
+    ].map(normalizeFileName);
+
+    const basicFields = [
+      "certificate_id", "status", "final_grade", "average_score", "surface", "corners", "edges", "centering",
+      "card_name", "card_year", "brand", "set_name", "card_number", "variant",
+      "front_image_url", "back_image_url", "slab_image_url", "video_url",
+      "technical_assessment", "security_notice"
+    ];
+
+    const jsonFields = ["analysis_images"];
+
+    function el(id){ return document.getElementById(id); }
+
+    function showMessage(targetId, type, text){
+      const box = el(targetId);
+      box.className = "message " + type;
+      box.innerHTML = text;
+    }
+
+    function clearMessage(targetId){
+      const box = el(targetId);
+      box.className = "message";
+      box.innerHTML = "";
+    }
+
+    function numberOrNull(value){
+      if (value === "" || value === null || value === undefined) return null;
+      const n = Number(value);
+      return Number.isNaN(n) ? null : n;
+    }
+
+    function intOrNull(value){
+      if (value === "" || value === null || value === undefined) return null;
+      const n = parseInt(value, 10);
+      return Number.isNaN(n) ? null : n;
+    }
+
+    function jsonOrNull(id){
+      const raw = el(id).value.trim();
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        throw new Error("El campo " + id + " tiene JSON inválido. Revisá comas, comillas y llaves.");
+      }
+    }
+
+    function setValue(id, value){
+      if (!el(id)) return;
+      el(id).value = value ?? "";
+    }
+
+    function setJsonValue(id, value){
+      if (!el(id)) return;
+      el(id).value = value ? JSON.stringify(value, null, 2) : "";
+    }
+
+    function getPayload(){
+      const certificateId = el("certificate_id").value.trim().toUpperCase();
+
+      if (!certificateId) throw new Error("Falta el Certificate ID.");
+      if (!el("card_name").value.trim()) throw new Error("Falta el nombre de la carta.");
+
+      return {
+        certificate_id: certificateId,
+        status: el("status").value.trim(),
+        final_grade: el("final_grade").value.trim() || null,
+        average_score: numberOrNull(el("average_score").value),
+        surface: numberOrNull(el("surface").value),
+        corners: numberOrNull(el("corners").value),
+        edges: numberOrNull(el("edges").value),
+        centering: numberOrNull(el("centering").value),
+        card_name: el("card_name").value.trim(),
+        card_year: intOrNull(el("card_year").value),
+        brand: el("brand").value.trim() || null,
+        set_name: el("set_name").value.trim() || null,
+        card_number: el("card_number").value.trim() || null,
+        variant: el("variant").value.trim() || null,
+        technical_assessment: el("technical_assessment").value.trim() || null,
+        security_notice: el("security_notice").value.trim() || null,
+        front_image_url: el("front_image_url").value.trim() || null,
+        back_image_url: el("back_image_url").value.trim() || null,
+        slab_image_url: el("slab_image_url").value.trim() || null,
+        video_url: el("video_url").value.trim() || null,
+        public_visible: el("public_visible").checked,
+        analysis_images: jsonOrNull("analysis_images")
+      };
+    }
+
+    function fillForm(data){
+      basicFields.forEach(field => setValue(field, data[field]));
+      jsonFields.forEach(field => setJsonValue(field, data[field]));
+      el("public_visible").checked = data.public_visible !== false;
+      if (el("transfer_key")) el("transfer_key").value = "";
+      renderAnalysisPreview(data.analysis_images || null);
+      updateQrUrlField();
+      clearQrPreview();
+    }
+
+    function clearForm(){
+      basicFields.forEach(field => setValue(field, ""));
+      jsonFields.forEach(field => setValue(field, ""));
+      setValue("status", "Verified Authentic");
+      setValue("security_notice", "Este certificado ha sido emitido por APEX Card Grading e incluye un registro digital único. Puede verificarse mediante su código en nuestro sistema online. Cualquier intento de duplicación, alteración o falsificación invalida automáticamente su autenticidad.");
+      el("public_visible").checked = true;
+      if (el("transfer_key")) el("transfer_key").value = "";
+      if (el("qr_url")) el("qr_url").value = "";
+      renderAnalysisPreview(null);
+      clearQrPreview();
+      clearMessage("adminMessage");
+    }
+
+    async function login(){
+      clearMessage("loginMessage");
+      const email = el("loginEmail").value.trim();
+      const password = el("loginPassword").value;
+
+      if (!email || !password) {
+        showMessage("loginMessage", "bad", "Completá email y contraseña.");
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showMessage("loginMessage", "bad", error.message);
+        return;
+      }
+
+      showAdmin(data.user);
+    }
+
+    async function logout(){
+      await supabaseClient.auth.signOut();
+      el("loginPanel").classList.remove("hidden");
+      el("adminPanel").classList.add("hidden");
+      el("topActions").classList.add("hidden");
+    }
+
+    function showAdmin(user){
+      el("loginPanel").classList.add("hidden");
+      el("adminPanel").classList.remove("hidden");
+      el("topActions").classList.remove("hidden");
+      el("userEmail").textContent = user.email;
+    }
+
+
+    function buildNextCertificateId(lastId){
+      const match = String(lastId || "").match(/ACG-(\d{1,})$/);
+      const lastNumber = match ? parseInt(match[1], 10) : 0;
+      const nextNumber = lastNumber + 1;
+      return "ACG-" + String(nextNumber).padStart(9, "0");
+    }
+
+    async function generateNextCertificateId(){
+      clearMessage("adminMessage");
+
+      const { data, error } = await supabaseClient
+        .from("certificates")
+        .select("certificate_id")
+        .like("certificate_id", "ACG-%")
+        .order("certificate_id", { ascending: false })
+        .limit(1);
+
+      if (error) {
+        showMessage("adminMessage", "bad", "No pude generar el próximo código: " + error.message);
+        return;
+      }
+
+      const lastId = data && data.length ? data[0].certificate_id : "ACG-000000000";
+      const nextId = buildNextCertificateId(lastId);
+      el("certificate_id").value = nextId;
+      updateQrUrlField();
+      clearQrPreview();
+      showMessage("adminMessage", "good", "Próximo código generado: <strong>" + nextId + "</strong>. Guardá el certificado y después generá el QR único con doble confirmación.");
+    }
+
+    function randomChunk(length){
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      const values = new Uint32Array(length);
+      crypto.getRandomValues(values);
+      return Array.from(values, value => chars[value % chars.length]).join("");
+    }
+
+    function createTransferKey(){
+      return "APEX-" + randomChunk(4) + "-" + randomChunk(4) + "-" + randomChunk(4);
+    }
+
+    function getPublicBaseUrl(){
+      return PUBLIC_SITE_BASE_URL;
+    }
+
+    function getCertificateId(){
+      return el("certificate_id").value.trim().toUpperCase();
+    }
+
+    function buildCertificateUrl(certificateId){
+      return getPublicBaseUrl().replace(/\/+$/, "") + "/verify.html?id=" + encodeURIComponent(certificateId);
+    }
+
+    function getQrStorageKey(certificateId){
+      return QR_STORAGE_PREFIX + certificateId;
+    }
+
+    function getStoredQrMeta(certificateId){
+      try {
+        const raw = localStorage.getItem(getQrStorageKey(certificateId));
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function rememberGeneratedQr(certificateId, url){
+      try {
+        localStorage.setItem(getQrStorageKey(certificateId), JSON.stringify({
+          certificate_id: certificateId,
+          url: url,
+          generated_at: new Date().toISOString()
+        }));
+      } catch (error) {
+        console.warn("No pude guardar el estado local del QR", error);
+      }
+    }
+
+    function formatQrDate(value){
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+    }
+
+    function updateQrLockStatus(){
+      const statusEl = el("qrLockStatus");
+      if (!statusEl) return;
+
+      const certificateId = getCertificateId();
+      if (!certificateId) {
+        statusEl.textContent = "Todavía no hay QR generado para este certificado.";
+        return;
+      }
+
+      const url = buildCertificateUrl(certificateId);
+      const meta = getStoredQrMeta(certificateId);
+
+      if (meta && meta.url === url) {
+        const generatedAt = formatQrDate(meta.generated_at);
+        statusEl.textContent = "QR único ya generado para " + certificateId + (generatedAt ? " el " + generatedAt : "") + ". Re-generarlo con el mismo código no cambia el QR.";
+      } else {
+        statusEl.textContent = "QR listo para generar. Confirmá bien el código " + certificateId + " antes de imprimirlo.";
+      }
+    }
+
+    function clearQrPreview(){
+      const canvas = el("certificateQrCanvas");
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      if (el("qrPlaceholder")) el("qrPlaceholder").classList.remove("hidden");
+      if (el("downloadQrBtn")) el("downloadQrBtn").disabled = true;
+      updateQrLockStatus();
+    }
+
+    function updateQrUrlField(){
+      const certificateId = getCertificateId();
+      if (!el("qr_url")) return "";
+      if (!certificateId) {
+        el("qr_url").value = "";
+        updateQrLockStatus();
+        return "";
+      }
+      const url = buildCertificateUrl(certificateId);
+      el("qr_url").value = url;
+      updateQrLockStatus();
+      return url;
+    }
+
+    function confirmQrGeneration(certificateId, url){
+      const existingQr = getStoredQrMeta(certificateId);
+      const alreadyGenerated = existingQr && existingQr.url === url;
+
+      const firstMessage = alreadyGenerated
+        ? "Este certificado ya tiene un QR generado para " + certificateId + ".\n\nRe-generarlo con el mismo Certificate ID NO cambia el QR ni la URL.\n\n¿Querés continuar?"
+        : "Vas a generar el QR PÚBLICO ÚNICO para el certificado " + certificateId + ".\n\nEste QR abre la verificación online y NO incluye la clave privada.\n\n¿Querés continuar?";
+
+      if (!window.confirm(firstMessage)) return false;
+
+      return window.confirm(
+        "Doble confirmación APEX:\n\n" +
+        "¿Confirmás que este Certificate ID es correcto?\n\n" +
+        certificateId + "\n\n" +
+        "URL del QR:\n" + url + "\n\n" +
+        "Si ya imprimís este QR, no conviene cambiar el Certificate ID después."
+      );
+    }
+
+
+    function buildLocalQrMatrix(text) {
+      const VERSION = 4;
+      const SIZE = VERSION * 4 + 17;
+      const DATA_CODEWORDS = 80;
+      const ECC_CODEWORDS = 20;
+      const MASK = 0;
+      const modules = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
+      const isFunction = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
+
+      function setFunctionModule(x, y, dark) {
+        if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) return;
+        modules[y][x] = !!dark;
+        isFunction[y][x] = true;
+      }
+
+      function drawFinderPattern(x, y) {
+        for (let dy = -1; dy <= 7; dy++) {
+          for (let dx = -1; dx <= 7; dx++) {
+            const xx = x + dx;
+            const yy = y + dy;
+            if (xx < 0 || yy < 0 || xx >= SIZE || yy >= SIZE) continue;
+            const dark = dx >= 0 && dx <= 6 && dy >= 0 && dy <= 6 &&
+              (dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4));
+            setFunctionModule(xx, yy, dark);
+          }
+        }
+      }
+
+      function drawAlignmentPattern(cx, cy) {
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            setFunctionModule(cx + dx, cy + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+          }
+        }
+      }
+
+      function getFormatBits(mask) {
+        const eclBits = 1;
+        const data = (eclBits << 3) | mask;
+        let bits = data << 10;
+        for (let i = 14; i >= 10; i--) {
+          if (((bits >>> i) & 1) !== 0) bits ^= 0x537 << (i - 10);
+        }
+        return ((data << 10) | bits) ^ 0x5412;
+      }
+
+      function getBit(value, index) {
+        return ((value >>> index) & 1) !== 0;
+      }
+
+      function drawFormatBits(mask) {
+        const bits = getFormatBits(mask);
+        for (let i = 0; i <= 5; i++) setFunctionModule(8, i, getBit(bits, i));
+        setFunctionModule(8, 7, getBit(bits, 6));
+        setFunctionModule(8, 8, getBit(bits, 7));
+        setFunctionModule(7, 8, getBit(bits, 8));
+        for (let i = 9; i < 15; i++) setFunctionModule(14 - i, 8, getBit(bits, i));
+        for (let i = 0; i < 8; i++) setFunctionModule(SIZE - 1 - i, 8, getBit(bits, i));
+        for (let i = 8; i < 15; i++) setFunctionModule(8, SIZE - 15 + i, getBit(bits, i));
+      }
+
+      function drawFunctionPatterns() {
+        drawFinderPattern(0, 0);
+        drawFinderPattern(SIZE - 7, 0);
+        drawFinderPattern(0, SIZE - 7);
+
+        for (let i = 0; i < SIZE; i++) {
+          if (!isFunction[6][i]) setFunctionModule(i, 6, i % 2 === 0);
+          if (!isFunction[i][6]) setFunctionModule(6, i, i % 2 === 0);
+        }
+
+        drawAlignmentPattern(26, 26);
+        setFunctionModule(8, SIZE - 8, true);
+        drawFormatBits(MASK);
+      }
+
+      function getBytes(value) {
+        if (typeof TextEncoder !== "undefined") return Array.from(new TextEncoder().encode(value));
+        return Array.from(unescape(encodeURIComponent(value)), ch => ch.charCodeAt(0));
+      }
+
+      function appendBits(arr, value, length) {
+        for (let i = length - 1; i >= 0; i--) arr.push((value >>> i) & 1);
+      }
+
+      function createDataCodewords(value) {
+        const bytes = getBytes(value);
+        if (bytes.length > 78) {
+          throw new Error("La URL es demasiado larga para el QR simple. Usá una URL más corta.");
+        }
+
+        const bits = [];
+        appendBits(bits, 0x4, 4);
+        appendBits(bits, bytes.length, 8);
+        bytes.forEach(byte => appendBits(bits, byte, 8));
+
+        const capacityBits = DATA_CODEWORDS * 8;
+        appendBits(bits, 0, Math.min(4, capacityBits - bits.length));
+        while (bits.length % 8 !== 0) bits.push(0);
+
+        const data = [];
+        for (let i = 0; i < bits.length; i += 8) {
+          let byte = 0;
+          for (let j = 0; j < 8; j++) byte = (byte << 1) | bits[i + j];
+          data.push(byte);
+        }
+
+        for (let pad = 0; data.length < DATA_CODEWORDS; pad ^= 1) data.push(pad ? 0x11 : 0xEC);
+        return data;
+      }
+
+      function reedSolomonMultiply(x, y) {
+        let z = 0;
+        for (let i = 7; i >= 0; i--) {
+          z = (z << 1) ^ ((z >>> 7) * 0x11D);
+          z ^= ((y >>> i) & 1) * x;
+        }
+        return z & 0xFF;
+      }
+
+      function reedSolomonDivisor(degree) {
+        const result = Array(degree).fill(0);
+        result[degree - 1] = 1;
+        let root = 1;
+        for (let i = 0; i < degree; i++) {
+          for (let j = 0; j < degree; j++) {
+            result[j] = reedSolomonMultiply(result[j], root);
+            if (j + 1 < degree) result[j] ^= result[j + 1];
+          }
+          root = reedSolomonMultiply(root, 0x02);
+        }
+        return result;
+      }
+
+      function reedSolomonRemainder(data, divisor) {
+        const result = Array(divisor.length).fill(0);
+        data.forEach(byte => {
+          const factor = byte ^ result.shift();
+          result.push(0);
+          divisor.forEach((coef, i) => {
+            result[i] ^= reedSolomonMultiply(coef, factor);
+          });
+        });
+        return result;
+      }
+
+      function maskBit(x, y) {
+        return (x + y) % 2 === 0;
+      }
+
+      function drawCodewords(codewords) {
+        const bits = [];
+        codewords.forEach(byte => appendBits(bits, byte, 8));
+        let bitIndex = 0;
+
+        for (let right = SIZE - 1; right >= 1; right -= 2) {
+          if (right === 6) right = 5;
+          for (let vert = 0; vert < SIZE; vert++) {
+            const upward = ((right + 1) & 2) === 0;
+            const y = upward ? SIZE - 1 - vert : vert;
+            for (let j = 0; j < 2; j++) {
+              const x = right - j;
+              if (!isFunction[y][x]) {
+                let dark = false;
+                if (bitIndex < bits.length) dark = bits[bitIndex++] === 1;
+                modules[y][x] = dark !== maskBit(x, y);
+              }
+            }
+          }
+        }
+      }
+
+      drawFunctionPatterns();
+      const dataCodewords = createDataCodewords(text);
+      const ecc = reedSolomonRemainder(dataCodewords, reedSolomonDivisor(ECC_CODEWORDS));
+      drawCodewords(dataCodewords.concat(ecc));
+      return modules;
+    }
+
+    function drawLocalQrToCanvas(canvas, text) {
+      const matrix = buildLocalQrMatrix(text);
+      const ctx = canvas.getContext("2d");
+      const size = matrix.length;
+      const margin = 1;
+      const scale = Math.floor(Math.min(canvas.width, canvas.height) / (size + margin * 2));
+      const drawSize = scale * (size + margin * 2);
+      const offsetX = Math.floor((canvas.width - drawSize) / 2);
+      const offsetY = Math.floor((canvas.height - drawSize) / 2);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#000000";
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          if (matrix[y][x]) {
+            ctx.fillRect(offsetX + (x + margin) * scale, offsetY + (y + margin) * scale, scale, scale);
+          }
+        }
+      }
+    }
+
+    async function certificateExists(certificateId){
+      const { data, error } = await supabaseClient
+        .from("certificates")
+        .select("certificate_id")
+        .eq("certificate_id", certificateId)
+        .maybeSingle();
+
+      if (error) throw error;
+      return !!data;
+    }
+
+    async function generateCertificateQr(options = {}){
+      const { silent = false, skipConfirm = false, remember = true } = options;
+      const certificateId = getCertificateId();
+
+      if (!certificateId) {
+        clearQrPreview();
+        if (!silent) showMessage("adminMessage", "bad", "Primero generá o escribí un Certificate ID para crear el QR.");
+        return false;
+      }
+
+      const url = updateQrUrlField();
+      const canvas = el("certificateQrCanvas");
+
+      if (!canvas) return false;
+
+      if (!silent && !skipConfirm) {
+        try {
+          const exists = await certificateExists(certificateId);
+          if (!exists) {
+            showMessage("adminMessage", "bad", "Antes de generar el QR único, guardá primero el certificado <strong>" + certificateId + "</strong>.");
+            return false;
+          }
+        } catch (error) {
+          showMessage("adminMessage", "bad", "No pude verificar si existe el certificado antes de generar el QR: " + error.message);
+          return false;
+        }
+      }
+
+      if (!silent && !skipConfirm && !confirmQrGeneration(certificateId, url)) {
+        showMessage("adminMessage", "bad", "Generación de QR cancelada.");
+        return false;
+      }
+
+      try {
+        if (window.QRCode && typeof window.QRCode.toCanvas === "function") {
+          await window.QRCode.toCanvas(canvas, url, {
+            width: 420,
+            margin: 1,
+            errorCorrectionLevel: "L",
+            color: {
+              dark: "#000000",
+              light: "#ffffff"
+            }
+          });
+        } else {
+          drawLocalQrToCanvas(canvas, url);
+        }
+
+        if (remember) rememberGeneratedQr(certificateId, url);
+        updateQrLockStatus();
+
+        if (el("qrPlaceholder")) el("qrPlaceholder").classList.add("hidden");
+        if (el("downloadQrBtn")) el("downloadQrBtn").disabled = false;
+
+        if (!silent) {
+          showMessage("adminMessage", "good", "QR único generado para <strong>" + certificateId + "</strong>. Mientras no cambies ese código ACG, el QR no cambia.");
+        }
+        return true;
+      } catch (error) {
+        console.error(error);
+        clearQrPreview();
+        if (!silent) showMessage("adminMessage", "bad", "No pude generar el QR: " + error.message);
+        return false;
+      }
+    }
+
+    async function copyQrUrl(){
+      const url = updateQrUrlField();
+      if (!url) {
+        showMessage("adminMessage", "bad", "Primero escribí un Certificate ID.");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(url);
+        showMessage("adminMessage", "good", "URL pública del certificado copiada.");
+      } catch (error) {
+        showMessage("adminMessage", "bad", "No pude copiar automáticamente. Seleccioná la URL y copiala manualmente.");
+      }
+    }
+
+    function downloadCertificateQr(){
+      const certificateId = getCertificateId();
+      const canvas = el("certificateQrCanvas");
+
+      if (!certificateId || !canvas || el("downloadQrBtn").disabled) {
+        showMessage("adminMessage", "bad", "Primero generá el QR.");
+        return;
+      }
+
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = certificateId + "-qr-apex.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    async function generateTransferKey(){
+      clearMessage("adminMessage");
+      const certificateId = el("certificate_id").value.trim().toUpperCase();
+
+      if (!certificateId) {
+        showMessage("adminMessage", "bad", "Primero generá o escribí un Certificate ID.");
+        return;
+      }
+
+      const firstConfirm = window.confirm(
+        "Vas a generar una CLAVE PRIVADA para el certificado " + certificateId + ".\n\n" +
+        "También se va a preparar el QR público único de ese mismo código ACG.\n\n" +
+        "Esta clave sirve para futuras transferencias o reclamos de propiedad.\n\n" +
+        "¿Querés continuar?"
+      );
+
+      if (!firstConfirm) {
+        showMessage("adminMessage", "bad", "Generación de clave cancelada.");
+        return;
+      }
+
+      const secondConfirm = window.confirm(
+        "Doble confirmación APEX:\n\n" +
+        "¿Confirmás que el código " + certificateId + " es correcto?\n\n" +
+        "El QR quedará asociado a este Certificate ID. Si ya lo imprimís, no conviene cambiarlo después.\n\n" +
+        "Si ya existe una clave para este certificado, la nueva va a reemplazar la anterior."
+      );
+
+      if (!secondConfirm) {
+        showMessage("adminMessage", "bad", "Generación de clave cancelada en la segunda confirmación.");
+        return;
+      }
+
+      const { data: existingCert, error: certError } = await supabaseClient
+        .from("certificates")
+        .select("certificate_id")
+        .eq("certificate_id", certificateId)
+        .maybeSingle();
+
+      if (certError) {
+        showMessage("adminMessage", "bad", "No pude verificar si existe el certificado: " + certError.message);
+        return;
+      }
+
+      if (!existingCert) {
+        showMessage("adminMessage", "bad", "Antes de generar la clave, guardá el certificado <strong>" + certificateId + "</strong>.");
+        return;
+      }
+
+      const newKey = createTransferKey();
+
+      const { error } = await supabaseClient
+        .from("certificate_transfer_keys")
+        .upsert({
+          certificate_id: certificateId,
+          transfer_key: newKey
+        }, { onConflict: "certificate_id" });
+
+      if (error) {
+        showMessage("adminMessage", "bad", "No pude guardar la clave. Probablemente falta correr el SQL de transfer keys en Supabase. Error: " + error.message);
+        console.error(error);
+        return;
+      }
+
+      el("transfer_key").value = newKey;
+      const qrOk = await generateCertificateQr({ silent: true, skipConfirm: true, remember: true });
+      showMessage("adminMessage", "good", qrOk
+        ? "Clave privada generada y QR único preparado para <strong>" + certificateId + "</strong>. Copiá la clave y descargá el QR si lo vas a imprimir."
+        : "Clave privada generada para <strong>" + certificateId + "</strong>. El QR no se pudo dibujar automáticamente; probá con el botón Generar QR único.");
+    }
+
+    async function loadTransferKey(){
+      clearMessage("adminMessage");
+      const certificateId = el("certificate_id").value.trim().toUpperCase();
+
+      if (!certificateId) {
+        showMessage("adminMessage", "bad", "Primero escribí el Certificate ID.");
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("certificate_transfer_keys")
+        .select("transfer_key, updated_at")
+        .eq("certificate_id", certificateId)
+        .maybeSingle();
+
+      if (error) {
+        showMessage("adminMessage", "bad", "No pude leer la clave: " + error.message);
+        console.error(error);
+        return;
+      }
+
+      if (!data) {
+        el("transfer_key").value = "";
+        showMessage("adminMessage", "bad", "Ese certificado todavía no tiene clave privada generada.");
+        return;
+      }
+
+      el("transfer_key").value = data.transfer_key;
+      showMessage("adminMessage", "good", "Clave privada cargada para <strong>" + certificateId + "</strong>.");
+    }
+
+    async function copyTransferKey(){
+      const key = el("transfer_key").value.trim();
+      if (!key) {
+        showMessage("adminMessage", "bad", "No hay ninguna clave para copiar.");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(key);
+        showMessage("adminMessage", "good", "Clave copiada al portapapeles.");
+      } catch (error) {
+        showMessage("adminMessage", "bad", "No pude copiar automáticamente. Seleccioná la clave y copiala manualmente.");
+      }
+    }
+
+    function cleanFilePart(value){
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "file";
+    }
+
+    function getFileExtension(file, fallback = "bin"){
+      const namePart = (file.name || "").split(".").pop();
+      if (namePart && namePart !== file.name) return cleanFilePart(namePart).slice(0, 8) || fallback;
+
+      const mimeMap = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "video/mp4": "mp4",
+        "video/webm": "webm",
+        "video/quicktime": "mov"
+      };
+
+      return mimeMap[file.type] || fallback;
+    }
+
+    function setUploadStatus(inputId, type, text){
+      const statusEl = el(inputId + "Status");
+      if (!statusEl) return;
+      statusEl.className = "upload-status" + (type ? " " + type : "");
+      statusEl.textContent = text;
+    }
+
+    function loadImage(file){
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          URL.revokeObjectURL(url);
+          resolve(image);
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error("No pude leer la imagen seleccionada."));
+        };
+        image.src = url;
+      });
+    }
+
+    async function prepareImageForUpload(file){
+      const compressibleTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!compressibleTypes.includes(file.type)) {
+        return {
+          fileBody: file,
+          extension: getFileExtension(file),
+          contentType: file.type || "application/octet-stream"
+        };
+      }
+
+      const image = await loadImage(file);
+      const largestSide = Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height);
+      const scale = largestSide > IMAGE_MAX_SIZE ? IMAGE_MAX_SIZE / largestSide : 1;
+      const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+      const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(image, 0, 0, width, height);
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", IMAGE_QUALITY));
+
+      if (!blob) {
+        return {
+          fileBody: file,
+          extension: getFileExtension(file),
+          contentType: file.type || "application/octet-stream"
+        };
+      }
+
+      return {
+        fileBody: blob,
+        extension: "webp",
+        contentType: "image/webp"
+      };
+    }
+
+    async function uploadSelectedFile(button){
+      clearMessage("adminMessage");
+
+      const inputId = button.dataset.uploadInput;
+      const targetField = button.dataset.uploadTarget;
+      const kind = button.dataset.uploadKind;
+      const input = el(inputId);
+      const file = input && input.files && input.files[0];
+      const certificateId = el("certificate_id").value.trim().toUpperCase();
+
+      if (!certificateId) {
+        showMessage("adminMessage", "bad", "Primero generá o escribí el Certificate ID antes de subir archivos.");
+        return;
+      }
+
+      if (!file) {
+        showMessage("adminMessage", "bad", "Seleccioná un archivo para subir.");
+        return;
+      }
+
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      if (!sessionData.session) {
+        showMessage("adminMessage", "bad", "Tu sesión de admin no está activa. Volvé a iniciar sesión.");
+        return;
+      }
+
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = "Subiendo...";
+      setUploadStatus(inputId, "loading", "Preparando archivo...");
+
+      try {
+        const isImage = file.type.startsWith("image/");
+        const prepared = isImage
+          ? await prepareImageForUpload(file)
+          : {
+              fileBody: file,
+              extension: getFileExtension(file),
+              contentType: file.type || "application/octet-stream"
+            };
+
+        const safeId = cleanFilePart(certificateId);
+        const safeKind = cleanFilePart(kind);
+        const filePath = `${safeId}/${safeKind}-${Date.now()}.${prepared.extension}`;
+
+        setUploadStatus(inputId, "loading", "Subiendo a Supabase Storage...");
+
+        const { error } = await supabaseClient.storage
+          .from(STORAGE_BUCKET)
+          .upload(filePath, prepared.fileBody, {
+            cacheControl: "31536000",
+            contentType: prepared.contentType,
+            upsert: true
+          });
+
+        if (error) throw error;
+
+        const { data: publicData } = supabaseClient.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(filePath);
+
+        if (!publicData || !publicData.publicUrl) {
+          throw new Error("El archivo subió, pero no pude generar la URL pública.");
+        }
+
+        setValue(targetField, publicData.publicUrl);
+        setUploadStatus(inputId, "good", "Archivo subido. URL cargada en el campo correspondiente.");
+        showMessage("adminMessage", "good", "Archivo subido correctamente. Ahora guardá el certificado para dejar asociada la URL.");
+      } catch (error) {
+        console.error(error);
+        setUploadStatus(inputId, "bad", "No se pudo subir el archivo.");
+        showMessage("adminMessage", "bad", "No se pudo subir el archivo. Revisá que exista el bucket <strong>" + STORAGE_BUCKET + "</strong>, que sea público y que tenga permisos para usuarios autenticados. Error: " + error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+
+    function getFileBaseName(file){
+      const rawName = (file && file.name ? file.name : "file").replace(/\.[^.]+$/, "");
+      return rawName || "file";
+    }
+
+    function normalizeFileName(value){
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[_\s]+/g, "-")
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function detectSide(name){
+      if (/(^|-)front($|-)/.test(name) || /(^|-)frente($|-)/.test(name)) return "front";
+      if (/(^|-)back($|-)/.test(name) || /(^|-)reverso($|-)/.test(name) || /(^|-)dorso($|-)/.test(name)) return "back";
+      return "";
+    }
+
+    function detectPosition(name){
+      const compact = name.replace(/-/g, "");
+      if (compact.includes("topleft")) return "topLeft";
+      if (compact.includes("topright")) return "topRight";
+      if (compact.includes("bottomleft")) return "bottomLeft";
+      if (compact.includes("bottomright")) return "bottomRight";
+      if (/(^|-)top($|-)/.test(name)) return "top";
+      if (/(^|-)bottom($|-)/.test(name)) return "bottom";
+      if (/(^|-)left($|-)/.test(name)) return "left";
+      if (/(^|-)right($|-)/.test(name)) return "right";
+      return "";
+    }
+
+    function labelForPosition(position){
+      const labels = {
+        topLeft: "TOP LEFT",
+        topRight: "TOP RIGHT",
+        bottomLeft: "BOTTOM LEFT",
+        bottomRight: "BOTTOM RIGHT",
+        top: "TOP",
+        bottom: "BOTTOM",
+        left: "LEFT",
+        right: "RIGHT"
+      };
+      return labels[position] || "CAPTURA";
+    }
+
+    function createEmptyAnalysis(folderName){
+      return {
+        folder_name: folderName || null,
+        uploaded_at: new Date().toISOString(),
+        summary: {
+          centering: "",
+          corners: "",
+          edges: "",
+          surface: ""
+        },
+        main: {},
+        centeringImages: {},
+        zoomImages: { front: {}, back: {} },
+        microscopeImages: [],
+        edgeImages: { front: {}, back: {} },
+        other: []
+      };
+    }
+
+    function microscopeTitle(name){
+      if (name.includes("micro-1")) return "SURFACE";
+      if (name.includes("micro-2")) return "ILLUSTRATION";
+      if (name.includes("micro-3")) return "DETAIL";
+      return "DETAIL";
+    }
+
+    function addAnalysisItem(analysis, file, url){
+      const baseName = getFileBaseName(file);
+      const name = normalizeFileName(baseName);
+      const side = detectSide(name);
+      const position = detectPosition(name);
+      const item = {
+        src: url,
+        url: url,
+        title: labelForPosition(position),
+        filename: file.name,
+        score: "",
+        overlays: { hLine: true, vLine: true },
+        metrics: [],
+        defects: []
+      };
+
+      if (name === "slab") {
+        analysis.main.slab = { title: "SLAB", filename: file.name, src: url, url };
+        setValue("slab_image_url", url);
+        return;
+      }
+
+      if (name === "centering-front") {
+        analysis.centeringImages.front = url;
+        setValue("front_image_url", url);
+        return;
+      }
+
+      if (name === "centering-back") {
+        analysis.centeringImages.back = url;
+        setValue("back_image_url", url);
+        return;
+      }
+
+      if (side && name.includes("edge")) {
+        analysis.edgeImages[side][position] = item;
+        return;
+      }
+
+      const isCorner = ["topLeft", "topRight", "bottomLeft", "bottomRight"].includes(position);
+      if (side && isCorner) {
+        analysis.zoomImages[side][position] = item;
+        return;
+      }
+
+      if (name.includes("micro")) {
+        analysis.microscopeImages.push({ ...item, title: microscopeTitle(name), overlays: null });
+        return;
+      }
+
+      // Compatibilidad por si alguna carpeta vieja trae front/back o nombres extra.
+      if (name === "front" || name === "frente") {
+        analysis.centeringImages.front = url;
+        setValue("front_image_url", url);
+        return;
+      }
+
+      if (name === "back" || name === "dorso" || name === "reverso") {
+        analysis.centeringImages.back = url;
+        setValue("back_image_url", url);
+        return;
+      }
+
+      if (name.includes("center") || name.includes("centrado") || name.includes("centering")) {
+        const targetSide = side || (!analysis.centeringImages.front ? "front" : "back");
+        analysis.centeringImages[targetSide] = url;
+        return;
+      }
+
+      analysis.other.push({ ...item, title: baseName.toUpperCase().slice(0, 36) });
+    }
+
+    function countAnalysisImages(analysis){
+      if (!analysis) return 0;
+      let count = 0;
+      ["slab"].forEach(key => { if (analysis.main && analysis.main[key] && (analysis.main[key].url || analysis.main[key].src)) count++; });
+      if (analysis.centeringImages) ["front", "back"].forEach(key => { if (analysis.centeringImages[key]) count++; });
+      ["front", "back"].forEach(side => {
+        count += Object.values(((analysis.zoomImages || {})[side]) || {}).filter(Boolean).length;
+        count += Object.values(((analysis.edgeImages || {})[side]) || {}).filter(Boolean).length;
+      });
+      count += ((analysis.microscopeImages) || []).length;
+      count += ((analysis.other) || []).length;
+      return count;
+    }
+
+    function flattenAnalysisItems(analysis){
+      if (!analysis) return [];
+      const items = [];
+      if (analysis.main) ["slab"].forEach(key => { if (analysis.main[key]) items.push(analysis.main[key]); });
+      if (analysis.centeringImages) ["front", "back"].forEach(key => { if (analysis.centeringImages[key]) items.push({ title: key.toUpperCase(), url: analysis.centeringImages[key], src: analysis.centeringImages[key] }); });
+      ["front", "back"].forEach(side => {
+        items.push(...Object.values(((analysis.zoomImages || {})[side]) || {}));
+        items.push(...Object.values(((analysis.edgeImages || {})[side]) || {}));
+      });
+      items.push(...(analysis.microscopeImages || []), ...(analysis.other || []));
+      return items.filter(item => item && (item.url || item.src));
+    }
+
+
+    function parseAnalysisTextarea(){
+      const raw = el("analysis_images").value.trim();
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch (error) { return null; }
+    }
+
+    function syncAnalysisTextareaAndViews(analysis){
+      setJsonValue("analysis_images", analysis || null);
+      renderAnalysisPreview(analysis || null);
+      renderAnalysisEditor(analysis || null);
+    }
+
+    function getAnalysisEditorGroups(analysis){
+      if (!analysis) return [];
+      return [
+        {
+          title: 'Front Corners',
+          items: [
+            { path: 'zoomImages.front.topLeft', label: 'TOP LEFT', item: analysis.zoomImages?.front?.topLeft },
+            { path: 'zoomImages.front.topRight', label: 'TOP RIGHT', item: analysis.zoomImages?.front?.topRight },
+            { path: 'zoomImages.front.bottomLeft', label: 'BOTTOM LEFT', item: analysis.zoomImages?.front?.bottomLeft },
+            { path: 'zoomImages.front.bottomRight', label: 'BOTTOM RIGHT', item: analysis.zoomImages?.front?.bottomRight }
+          ]
+        },
+        {
+          title: 'Back Corners',
+          items: [
+            { path: 'zoomImages.back.topLeft', label: 'TOP LEFT', item: analysis.zoomImages?.back?.topLeft },
+            { path: 'zoomImages.back.topRight', label: 'TOP RIGHT', item: analysis.zoomImages?.back?.topRight },
+            { path: 'zoomImages.back.bottomLeft', label: 'BOTTOM LEFT', item: analysis.zoomImages?.back?.bottomLeft },
+            { path: 'zoomImages.back.bottomRight', label: 'BOTTOM RIGHT', item: analysis.zoomImages?.back?.bottomRight }
+          ]
+        },
+        {
+          title: 'Microscope Captures',
+          items: [
+            { path: 'microscopeImages.0', label: 'SURFACE', item: (analysis.microscopeImages || [])[0] },
+            { path: 'microscopeImages.1', label: 'ILLUSTRATION', item: (analysis.microscopeImages || [])[1] },
+            { path: 'microscopeImages.2', label: 'DETAIL', item: (analysis.microscopeImages || [])[2] }
+          ]
+        },
+        {
+          title: 'Front Edges',
+          items: [
+            { path: 'edgeImages.front.top', label: 'TOP', item: analysis.edgeImages?.front?.top },
+            { path: 'edgeImages.front.bottom', label: 'BOTTOM', item: analysis.edgeImages?.front?.bottom },
+            { path: 'edgeImages.front.left', label: 'LEFT', item: analysis.edgeImages?.front?.left },
+            { path: 'edgeImages.front.right', label: 'RIGHT', item: analysis.edgeImages?.front?.right }
+          ]
+        },
+        {
+          title: 'Back Edges',
+          items: [
+            { path: 'edgeImages.back.top', label: 'TOP', item: analysis.edgeImages?.back?.top },
+            { path: 'edgeImages.back.bottom', label: 'BOTTOM', item: analysis.edgeImages?.back?.bottom },
+            { path: 'edgeImages.back.left', label: 'LEFT', item: analysis.edgeImages?.back?.left },
+            { path: 'edgeImages.back.right', label: 'RIGHT', item: analysis.edgeImages?.back?.right }
+          ]
+        }
+      ].map(group => ({...group, items: group.items.filter(entry => entry.item && (entry.item.src || entry.item.url))})).filter(group => group.items.length);
+    }
+
+    function getByPath(root, path){
+      return String(path || '').split('.').reduce((acc, key) => acc?.[key], root);
+    }
+
+    function setByPath(root, path, value){
+      const keys = String(path || '').split('.');
+      const last = keys.pop();
+      let obj = root;
+      keys.forEach(key => {
+        if (obj[key] == null) obj[key] = /^\d+$/.test(key) ? [] : {};
+        obj = obj[key];
+      });
+      obj[last] = value;
+    }
+
+    function parseLines(value){
+      return String(value || '').split(/\n+/).map(line => line.trim()).filter(Boolean);
+    }
+
+    function renderAnalysisEditor(analysis){
+      const box = el('analysisEditor');
+      if (!box) return;
+      const groups = getAnalysisEditorGroups(analysis);
+      if (!groups.length) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      box.classList.remove('hidden');
+      box.innerHTML = `
+        <div class="analysis-editor-head">
+          <strong>Editor rápido por foto</strong>
+          <span>Acá cargás score, métricas y comentarios para verify. No incluye slab ni centering.</span>
+        </div>
+        ${groups.map(group => {
+          return `
+            <div class="analysis-editor-group">
+              <h4>${group.title}</h4>
+              <div class="analysis-editor-grid">
+                ${group.items.map(entry => {
+                  const item = entry.item;
+                  const src = item.src || item.url || '';
+                  const metrics = Array.isArray(item.metrics)
+                    ? item.metrics.map(m => typeof m === 'string' ? m : [m.label, m.value].filter(Boolean).join(' ')).join('\n')
+                    : '';
+                  const defects = Array.isArray(item.defects) ? item.defects.join('\n') : '';
+                  return `
+                    <article class="analysis-editor-card" data-path="${entry.path}">
+                      <div class="analysis-editor-thumb">
+                        <img src="${src}" alt="${entry.label}" loading="lazy" />
+                        <span>${entry.label}</span>
+                      </div>
+                      <label>Score
+                        <input type="text" class="analysis-input" data-field="score" data-path="${entry.path}" value="${String(item.score ?? '').replace(/"/g,'&quot;')}" placeholder="Ej: 9.83" />
+                      </label>
+                      <label>Métricas (una por línea)
+                        <textarea class="analysis-textarea" data-field="metrics" data-path="${entry.path}" placeholder="FRAY -0.5&#10;FILL -0.5&#10;ANGLE -0.0">${metrics}</textarea>
+                      </label>
+                      <label>Comentarios / defectos (uno por línea)
+                        <textarea class="analysis-textarea" data-field="defects" data-path="${entry.path}" placeholder="7 WHITENING&#10;8 CORNER TOUCHES">${defects}</textarea>
+                      </label>
+                    </article>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      `;
+    }
+    function renderZoneAnalysisEditor(analysis){
+      const box = el('zoneAnalysisEditor');
+      if (!box) return;
+      if (!analysis) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      const summary = analysis.summary || {};
+      box.classList.remove('hidden');
+      box.innerHTML = `
+        <div class="analysis-editor-head">
+          <strong>Editor de ZONE ANALYSIS</strong>
+          <span>Acá cargás los 4 textos descriptivos que después se ven abajo en verify.</span>
+        </div>
+        <div class="zone-editor-grid">
+          <div class="zone-editor-card">
+            <label>Centering
+              <textarea class="analysis-textarea zone-textarea" data-zone-field="centering" placeholder="Ej: Your card's centering received a perfect score of 10, indicating excellent alignment of the image within the card borders.">${summary.centering || ''}</textarea>
+            </label>
+          </div>
+          <div class="zone-editor-card">
+            <label>Corners
+              <textarea class="analysis-textarea zone-textarea" data-zone-field="corners" placeholder="Ej: The front corners of your card show no detectable defects...">${summary.corners || ''}</textarea>
+            </label>
+          </div>
+          <div class="zone-editor-card">
+            <label>Edges
+              <textarea class="analysis-textarea zone-textarea" data-zone-field="edges" placeholder="Ej: The front edges of your card are free from any detected defects...">${summary.edges || ''}</textarea>
+            </label>
+          </div>
+          <div class="zone-editor-card">
+            <label>Surface
+              <textarea class="analysis-textarea zone-textarea" data-zone-field="surface" placeholder="Ej: The front surface of your card presents minor scratches, print defects and scuffing...">${summary.surface || ''}</textarea>
+            </label>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleZoneAnalysisEditorInput(event){
+      const target = event.target;
+      const field = target.dataset.zoneField;
+      if (!field) return;
+      const analysis = parseAnalysisTextarea() || createEmptyAnalysis('');
+      if (!analysis.summary || typeof analysis.summary !== 'object') analysis.summary = {};
+      analysis.summary[field] = target.value;
+      setJsonValue('analysis_images', analysis);
+    }
+
+    function handleAnalysisEditorInput(event){
+      const target = event.target;
+      if (!target.matches('[data-path][data-field]')) return;
+      const analysis = parseAnalysisTextarea();
+      if (!analysis) return;
+      const item = getByPath(analysis, target.dataset.path);
+      if (!item || typeof item !== 'object') return;
+      const field = target.dataset.field;
+      if (field === 'score') item.score = target.value.trim();
+      if (field === 'metrics') item.metrics = parseLines(target.value);
+      if (field === 'defects') item.defects = parseLines(target.value);
+      setJsonValue('analysis_images', analysis);
+    }
+
+    function renderAnalysisPreview(analysis){
+      const box = el("analysisPreview");
+      if (!box) return;
+      const items = flattenAnalysisItems(analysis).slice(0, 18);
+      const total = countAnalysisImages(analysis);
+      if (!items.length) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+        renderAnalysisEditor(null);
+        renderZoneAnalysisEditor(null);
+        return;
+      }
+      box.classList.remove("hidden");
+      renderAnalysisEditor(analysis);
+      renderZoneAnalysisEditor(analysis);
+      box.innerHTML = `
+        <div class="analysis-preview-head">
+          <strong>Vista previa del análisis visual</strong>
+          <span>${total} imagen${total === 1 ? "" : "es"} detectada${total === 1 ? "" : "s"}</span>
+        </div>
+        <div class="analysis-preview-grid">
+          ${items.map(item => `
+            <div class="analysis-preview-card">
+              <img src="${item.url}" alt="${item.title || item.filename || "Análisis"}" loading="lazy" />
+              <small>${item.title || item.filename || "CAPTURA"}</small>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function getStandardFolderReport(files){
+      const names = new Set(files.map(file => normalizeFileName(getFileBaseName(file))));
+      const missing = APEX_STANDARD_ANALYSIS_FILES.filter(name => !names.has(name));
+      const extras = Array.from(names).filter(name => !APEX_STANDARD_ANALYSIS_FILES.includes(name));
+      return { missing, extras };
+    }
+
+    function getFolderNameFromFiles(files){
+      const first = files && files[0];
+      if (!first || !first.webkitRelativePath) return "";
+      return first.webkitRelativePath.split("/")[0] || "";
+    }
+
+    async function uploadAnalysisFolder(){
+      clearMessage("adminMessage");
+      const certificateId = getCertificateId();
+      const input = el("analysisFolderUpload");
+      const files = Array.from((input && input.files) || []).filter(file => file.type && file.type.startsWith("image/"));
+
+      if (!certificateId) {
+        showMessage("adminMessage", "bad", "Primero generá o escribí el Certificate ID antes de importar la carpeta.");
+        return;
+      }
+
+      if (!files.length) {
+        showMessage("adminMessage", "bad", "Seleccioná una carpeta que tenga imágenes.");
+        return;
+      }
+
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      if (!sessionData.session) {
+        showMessage("adminMessage", "bad", "Tu sesión de admin no está activa. Volvé a iniciar sesión.");
+        return;
+      }
+
+      const button = el("importAnalysisFolderBtn");
+      const originalText = button.textContent;
+      const folderName = getFolderNameFromFiles(files);
+      const standardReport = getStandardFolderReport(files);
+      const analysis = createEmptyAnalysis(folderName);
+      const safeId = cleanFilePart(certificateId);
+      button.disabled = true;
+      button.textContent = "Subiendo carpeta...";
+      setUploadStatus("analysisFolderUpload", "loading", "Preparando " + files.length + " imágenes...");
+
+      try {
+        for (let index = 0; index < files.length; index++) {
+          const file = files[index];
+          setUploadStatus("analysisFolderUpload", "loading", "Subiendo " + (index + 1) + " de " + files.length + ": " + file.name);
+          const prepared = await prepareImageForUpload(file);
+          const baseName = normalizeFileName(getFileBaseName(file)) || "image";
+          const filePath = `${safeId}/analysis/${baseName}.${prepared.extension}`;
+
+          const { error } = await supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .upload(filePath, prepared.fileBody, {
+              cacheControl: "31536000",
+              contentType: prepared.contentType,
+              upsert: true
+            });
+
+          if (error) throw error;
+
+          const { data: publicData } = supabaseClient.storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(filePath);
+
+          if (!publicData || !publicData.publicUrl) throw new Error("No pude generar URL pública para " + file.name);
+          addAnalysisItem(analysis, file, publicData.publicUrl);
+        }
+
+        setJsonValue("analysis_images", analysis);
+        renderAnalysisPreview(analysis);
+        setUploadStatus("analysisFolderUpload", "good", "Carpeta importada. Se detectaron " + countAnalysisImages(analysis) + " imágenes. Faltantes: " + standardReport.missing.length + ". Extras: " + standardReport.extras.length + ". Ahora guardá el certificado.");
+        showMessage("adminMessage", "good", "Análisis visual importado correctamente para <strong>" + certificateId + "</strong>. Estándar APEX: " + (standardReport.missing.length ? "faltan " + standardReport.missing.join(", ") : "carpeta completa") + ". Después tocá <strong>Guardar certificado</strong>.");
+      } catch (error) {
+        console.error(error);
+        setUploadStatus("analysisFolderUpload", "bad", "No se pudo importar la carpeta.");
+        showMessage("adminMessage", "bad", "No se pudo importar la carpeta de análisis. Error: " + error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+    function clearAnalysisImages(){
+      setJsonValue("analysis_images", null);
+      renderAnalysisPreview(null);
+      setUploadStatus("analysisFolderUpload", "", "Análisis visual limpiado en el formulario. Tocá Guardar certificado para aplicar el cambio en Supabase.");
+    }
+
+    async function loadCertificate(){
+      clearMessage("adminMessage");
+      const certificateId = el("certificate_id").value.trim().toUpperCase();
+
+      if (!certificateId) {
+        showMessage("adminMessage", "bad", "Primero escribí el Certificate ID que querés buscar.");
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("certificates")
+        .select("*")
+        .eq("certificate_id", certificateId)
+        .single();
+
+      if (error || !data) {
+        showMessage("adminMessage", "bad", "No encontré ese certificado. Podés cargarlo como nuevo.");
+        return;
+      }
+
+      fillForm(data);
+      await generateCertificateQr({ silent: true, skipConfirm: true, remember: false });
+      showMessage("adminMessage", "good", "Certificado cargado para editar. El QR que ves corresponde al Certificate ID actual.");
+    }
+
+    async function saveCertificate(){
+      clearMessage("adminMessage");
+
+      let payload;
+      try {
+        payload = getPayload();
+      } catch (error) {
+        showMessage("adminMessage", "bad", error.message);
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("certificates")
+        .upsert(payload, { onConflict: "certificate_id" });
+
+      if (error) {
+        showMessage("adminMessage", "bad", "No se pudo guardar: " + error.message + "<br><br>Si dice Row Level Security, falta hacer el paso de permisos en Supabase.");
+        console.error(error);
+        return;
+      }
+
+      showMessage("adminMessage", "good", "Certificado guardado correctamente: <strong>" + payload.certificate_id + "</strong>");
+    }
+
+    function openVerify(){
+      const certificateId = el("certificate_id").value.trim().toUpperCase();
+      if (!certificateId) {
+        showMessage("adminMessage", "bad", "Primero escribí un Certificate ID.");
+        return;
+      }
+      window.open("verify.html?id=" + encodeURIComponent(certificateId), "_blank");
+    }
+
+    el("loginBtn").addEventListener("click", login);
+    el("logoutBtn").addEventListener("click", logout);
+    el("saveBtn").addEventListener("click", saveCertificate);
+    el("loadBtn").addEventListener("click", loadCertificate);
+    el("clearBtn").addEventListener("click", clearForm);
+    el("genNextIdBtn").addEventListener("click", generateNextCertificateId);
+    el("generateTransferKeyBtn").addEventListener("click", generateTransferKey);
+    el("loadTransferKeyBtn").addEventListener("click", loadTransferKey);
+    el("copyTransferKeyBtn").addEventListener("click", copyTransferKey);
+    el("generateQrBtn").addEventListener("click", () => generateCertificateQr());
+    el("downloadQrBtn").addEventListener("click", downloadCertificateQr);
+    el("copyQrUrlBtn").addEventListener("click", copyQrUrl);
+    el("certificate_id").addEventListener("input", function(){
+      updateQrUrlField();
+      clearQrPreview();
+    });
+    el("certificate_id").addEventListener("blur", function(){
+      el("certificate_id").value = getCertificateId();
+      updateQrUrlField();
+    });
+    el("openVerifyBtn").addEventListener("click", openVerify);
+    el("importAnalysisFolderBtn").addEventListener("click", uploadAnalysisFolder);
+    el("clearAnalysisImagesBtn").addEventListener("click", clearAnalysisImages);
+    el("analysisEditor").addEventListener("input", handleAnalysisEditorInput);
+    el("zoneAnalysisEditor").addEventListener("input", handleZoneAnalysisEditorInput);
+    el("analysis_images").addEventListener("input", () => { const parsed = parseAnalysisTextarea(); renderAnalysisEditor(parsed); renderZoneAnalysisEditor(parsed); });
+    el("analysis_images").addEventListener("input", function(){
+      try { renderAnalysisPreview(jsonOrNull("analysis_images")); } catch (error) {}
+    });
+    document.querySelectorAll("[data-upload-target]").forEach(button => {
+      button.addEventListener("click", () => uploadSelectedFile(button));
+    });
+
+    el("loginPassword").addEventListener("keydown", function(event){
+      if (event.key === "Enter") login();
+    });
+
+    clearQrPreview();
+    updateQrUrlField();
+
+    supabaseClient.auth.getSession().then(({ data }) => {
+      if (data.session && data.session.user) showAdmin(data.session.user);
+    });
+  </script>
+</body>
+</html>

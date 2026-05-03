@@ -2,80 +2,65 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enviar carta a grading | APEX Card Grading</title>
-
-  <!-- FAVICON -->
+  <meta name="description" content="Formulario para iniciar el proceso de grading en APEX Card Grading." />
   <link rel="icon" type="image/png" href="assets/icon.png" />
-
-  <!-- FONTS -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
   <div class="bg-grid"></div>
 
-  <!-- HEADER -->
   <header class="site-header">
     <div class="container nav-wrap">
-
-      <a href="index.html#top" class="brand">
+      <a href="index.html#top" class="brand" aria-label="Inicio APEX Card Grading">
         <img src="assets/Logo-Apex .png" alt="APEX Card Grading" class="brand-logo" />
       </a>
 
-      <nav class="nav">
+      <nav class="nav" aria-label="Navegación principal">
         <a href="index.html#proceso">Proceso</a>
         <a href="index.html#escala">Escala</a>
         <a href="index.html#precios">Precios</a>
         <a href="index.html#contacto">Contacto</a>
+        <a href="my-collection.html" class="login-link">Mi colección</a>
       </nav>
-
     </div>
   </header>
 
-  <!-- MAIN -->
   <main>
     <section class="section">
       <div class="container submit-page">
-
-        <!-- HERO -->
         <div class="submit-hero">
           <p class="eyebrow">Submission</p>
           <h1>Enviar carta a grading</h1>
           <p class="submit-lead">
-            Completá tus datos para iniciar el proceso. Más adelante esta sección
-            puede conectarse a un formulario real, WhatsApp o base de datos.
+            Completá tus datos para iniciar el proceso. Más adelante esta sección puede conectarse a WhatsApp,
+            email o una base de datos de solicitudes.
           </p>
         </div>
 
         <div class="submit-grid">
-
-          <!-- FORM -->
           <div class="submit-form-card">
             <form class="submit-form">
-
               <div class="form-row">
                 <div class="form-group">
                   <label for="nombre">Nombre completo</label>
-                  <input id="nombre" type="text" placeholder="Ej: Juan Pérez" required>
+                  <input id="nombre" type="text" placeholder="Ej: Juan Pérez" required />
                 </div>
 
                 <div class="form-group">
                   <label for="email">Email</label>
-                  <input id="email" type="email" placeholder="ejemplo@mail.com" required>
+                  <input id="email" type="email" placeholder="ejemplo@mail.com" required />
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
                   <label for="telefono">Número de teléfono</label>
-                  <input id="telefono" type="text" placeholder="+54 9 223..." required>
+                  <input id="telefono" type="text" placeholder="+54 9 223..." required />
                 </div>
 
                 <div class="form-group">
@@ -92,13 +77,13 @@
 
               <div class="form-group">
                 <label for="carta">Nombre de la carta</label>
-                <input id="carta" type="text" placeholder="Ej: Charizard Holo 2016" required>
+                <input id="carta" type="text" placeholder="Ej: Charizard Holo 2016" required />
               </div>
 
               <div class="form-row">
                 <div class="form-group">
                   <label for="cantidad">Cantidad</label>
-                  <input id="cantidad" type="number" min="1" value="1" required>
+                  <input id="cantidad" type="number" min="1" value="1" required />
                 </div>
 
                 <div class="form-group">
@@ -121,19 +106,16 @@
                 <button type="submit" class="btn btn-solid">Enviar solicitud</button>
                 <a href="how-to-prepare.html" class="btn btn-outline">Cómo preparar la carta</a>
               </div>
-
             </form>
           </div>
 
-          <!-- SIDE INFO -->
           <div class="submit-side">
-
             <div class="submit-info-card">
               <p class="submit-info-label">Qué sigue</p>
               <h2>Tu solicitud inicia el proceso</h2>
               <p>
-                Una vez enviada, podés revisar con nosotros el tipo de servicio,
-                los tiempos estimados y la mejor forma de preparar el envío.
+                Una vez enviada, podés revisar con nosotros el tipo de servicio, los tiempos estimados
+                y la mejor forma de preparar el envío.
               </p>
             </div>
 
@@ -171,14 +153,10 @@
                 <li>Más adelante este formulario puede generar un código de seguimiento.</li>
               </ul>
             </div>
-
           </div>
-
         </div>
-
       </div>
     </section>
   </main>
-
 </body>
 </html>
