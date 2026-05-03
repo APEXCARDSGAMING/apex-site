@@ -135,10 +135,10 @@
 
       const compare = value.compare || value.compareImages || value.surfaceCompare || {};
       const filtered = value.filtered || {};
-      legacy.compareImages.front.original = ((compare.front && (compare.front.original || compare.front.base || compare.front.color)) || (main.frontOriginal && (main.frontOriginal.url || main.frontOriginal.src)) || cert.frontImage || "");
-      legacy.compareImages.front.filtered = ((compare.front && (compare.front.filtered || compare.front.overlay || compare.front.defects)) || (filtered.front && (filtered.front.url || filtered.front.src)) || legacy.centeringImages.front || cert.frontImage || "");
-      legacy.compareImages.back.original = ((compare.back && (compare.back.original || compare.back.base || compare.back.color)) || (main.backOriginal && (main.backOriginal.url || main.backOriginal.src)) || cert.backImage || "");
-      legacy.compareImages.back.filtered = ((compare.back && (compare.back.filtered || compare.back.overlay || compare.back.defects)) || (filtered.back && (filtered.back.url || filtered.back.src)) || legacy.centeringImages.back || cert.backImage || "");
+      legacy.compareImages.front.original = (compare.front && (compare.front.original || compare.front.base || compare.front.color)) || "";
+      legacy.compareImages.front.filtered = (compare.front && (compare.front.filtered || compare.front.overlay || compare.front.defects)) || "";
+      legacy.compareImages.back.original = (compare.back && (compare.back.original || compare.back.base || compare.back.color)) || "";
+      legacy.compareImages.back.filtered = (compare.back && (compare.back.filtered || compare.back.overlay || compare.back.defects)) || "";
 
       const corners = value.corners || {};
       ["front", "back"].forEach(side => {
@@ -173,8 +173,8 @@
         frontImage: row.front_image_url || "",
         backImage: row.back_image_url || "",
         compareImages: {
-          front: { original: row.front_image_url || "", filtered: "" },
-          back: { original: row.back_image_url || "", filtered: "" }
+          front: { original: "", filtered: "" },
+          back: { original: "", filtered: "" }
         },
         cardDetails: {
           name: row.card_name || "Carta sin nombre",
@@ -410,10 +410,10 @@
 
     function renderCompareSection(cert){
       const compare = cert.compareImages || {};
-      const frontOriginal = (compare.front && compare.front.original) || cert.frontImage || "";
-      const frontFiltered = (compare.front && compare.front.filtered) || cert.centeringImages?.front || "";
-      const backOriginal = (compare.back && compare.back.original) || cert.backImage || "";
-      const backFiltered = (compare.back && compare.back.filtered) || cert.centeringImages?.back || "";
+      const frontOriginal = (compare.front && compare.front.original) || "";
+      const frontFiltered = (compare.front && compare.front.filtered) || "";
+      const backOriginal = (compare.back && compare.back.original) || "";
+      const backFiltered = (compare.back && compare.back.filtered) || "";
       if ((!frontOriginal || !frontFiltered) && (!backOriginal || !backFiltered)) return "";
 
       return `
