@@ -202,7 +202,7 @@
         <div class="upload-panel-head">
           <div>
             <h3>Importar carpeta de análisis visual</h3>
-            <p>Seleccioná la carpeta de la carta, por ejemplo <strong>CHARIZARD-002</strong>. Estándar APEX: 21 imágenes exactas: slab, centering-front/back, 8 esquinas, 3 microscopio y 8 bordes.</p>
+            <p>Seleccioná la carpeta de la carta, por ejemplo <strong>CHARIZARD-002</strong>. Estándar APEX: 25 imágenes exactas: slab, centering-front/back, 8 esquinas, 3 microscopio, 8 bordes y 4 imágenes para slider.</p>
           </div>
         </div>
 
@@ -211,7 +211,7 @@
           <button class="btn-secondary" id="importAnalysisFolderBtn" type="button">Subir carpeta de análisis</button>
           <button class="btn-secondary" id="clearAnalysisImagesBtn" type="button">Limpiar análisis visual</button>
         </div>
-        <small id="analysisFolderUploadStatus" class="upload-status">Elegí la carpeta local de la carta con el estándar final de 21 imágenes APEX.</small>
+        <small id="analysisFolderUploadStatus" class="upload-status">Elegí la carpeta local de la carta con el estándar final de 25 imágenes APEX.</small>
 
         <div id="analysisPreview" class="analysis-preview hidden"></div>
 
@@ -253,6 +253,7 @@
     const APEX_STANDARD_ANALYSIS_FILES = [
       "slab",
       "centering-front", "centering-back",
+      "front-full", "front-sfx", "back-full", "back-sfx",
       "front-topLeft", "front-topRight", "front-bottomLeft", "front-bottomRight",
       "back-topLeft", "back-topRight", "back-bottomLeft", "back-bottomRight",
       "micro-1", "micro-2", "micro-3",
@@ -1217,6 +1218,10 @@
         zoomImages: { front: {}, back: {} },
         microscopeImages: [],
         edgeImages: { front: {}, back: {} },
+        compareImages: {
+          front: { original: "", filtered: "" },
+          back: { original: "", filtered: "" }
+        },
         other: []
       };
     }
@@ -1250,15 +1255,37 @@
         return;
       }
 
+      if (name === "front-full") {
+        analysis.compareImages.front.original = url;
+        setValue("front_image_url", url);
+        return;
+      }
+
+      if (name === "front-sfx") {
+        analysis.compareImages.front.filtered = url;
+        return;
+      }
+
+      if (name === "back-full") {
+        analysis.compareImages.back.original = url;
+        setValue("back_image_url", url);
+        return;
+      }
+
+      if (name === "back-sfx") {
+        analysis.compareImages.back.filtered = url;
+        return;
+      }
+
       if (name === "centering-front") {
         analysis.centeringImages.front = url;
-        setValue("front_image_url", url);
+        if (!el("front_image_url").value.trim()) setValue("front_image_url", url);
         return;
       }
 
       if (name === "centering-back") {
         analysis.centeringImages.back = url;
-        setValue("back_image_url", url);
+        if (!el("back_image_url").value.trim()) setValue("back_image_url", url);
         return;
       }
 
@@ -1305,6 +1332,10 @@
       let count = 0;
       ["slab"].forEach(key => { if (analysis.main && analysis.main[key] && (analysis.main[key].url || analysis.main[key].src)) count++; });
       if (analysis.centeringImages) ["front", "back"].forEach(key => { if (analysis.centeringImages[key]) count++; });
+      if (analysis.compareImages) ["front", "back"].forEach(side => {
+        if (analysis.compareImages[side] && analysis.compareImages[side].original) count++;
+        if (analysis.compareImages[side] && analysis.compareImages[side].filtered) count++;
+      });
       ["front", "back"].forEach(side => {
         count += Object.values(((analysis.zoomImages || {})[side]) || {}).filter(Boolean).length;
         count += Object.values(((analysis.edgeImages || {})[side]) || {}).filter(Boolean).length;
@@ -1319,6 +1350,12 @@
       const items = [];
       if (analysis.main) ["slab"].forEach(key => { if (analysis.main[key]) items.push(analysis.main[key]); });
       if (analysis.centeringImages) ["front", "back"].forEach(key => { if (analysis.centeringImages[key]) items.push({ title: key.toUpperCase(), url: analysis.centeringImages[key], src: analysis.centeringImages[key] }); });
+      if (analysis.compareImages) {
+        if (analysis.compareImages.front?.original) items.push({ title: "FRONT FULL", url: analysis.compareImages.front.original, src: analysis.compareImages.front.original });
+        if (analysis.compareImages.front?.filtered) items.push({ title: "FRONT SFX", url: analysis.compareImages.front.filtered, src: analysis.compareImages.front.filtered });
+        if (analysis.compareImages.back?.original) items.push({ title: "BACK FULL", url: analysis.compareImages.back.original, src: analysis.compareImages.back.original });
+        if (analysis.compareImages.back?.filtered) items.push({ title: "BACK SFX", url: analysis.compareImages.back.filtered, src: analysis.compareImages.back.filtered });
+      }
       ["front", "back"].forEach(side => {
         items.push(...Object.values(((analysis.zoomImages || {})[side]) || {}));
         items.push(...Object.values(((analysis.edgeImages || {})[side]) || {}));

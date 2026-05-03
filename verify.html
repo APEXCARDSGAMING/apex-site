@@ -112,7 +112,7 @@
         try { value = JSON.parse(value); } catch (error) { return {}; }
       }
 
-      if (value.zoomImages || value.centeringImages || value.edgeImages || value.microscopeImages) {
+      if (value.zoomImages || value.centeringImages || value.edgeImages || value.microscopeImages || value.compareImages) {
         return value;
       }
 
@@ -123,6 +123,7 @@
         zoomImages: { front: {}, back: {} },
         microscopeImages: [],
         edgeImages: { front: {}, back: {} },
+        compareImages: { front: { original: "", filtered: "" }, back: { original: "", filtered: "" } },
         other: value.other || []
       };
 
@@ -130,6 +131,14 @@
       const centering = value.centering || {};
       legacy.centeringImages.front = (centering.front && centering.front[0] && (centering.front[0].url || centering.front[0].src)) || (main.front && (main.front.url || main.front.src)) || cert.frontImage || "";
       legacy.centeringImages.back = (centering.back && centering.back[0] && (centering.back[0].url || centering.back[0].src)) || (main.back && (main.back.url || main.back.src)) || cert.backImage || "";
+
+
+      const compare = value.compare || value.compareImages || value.surfaceCompare || {};
+      const filtered = value.filtered || {};
+      legacy.compareImages.front.original = ((compare.front && (compare.front.original || compare.front.base || compare.front.color)) || (main.frontOriginal && (main.frontOriginal.url || main.frontOriginal.src)) || cert.frontImage || "");
+      legacy.compareImages.front.filtered = ((compare.front && (compare.front.filtered || compare.front.overlay || compare.front.defects)) || (filtered.front && (filtered.front.url || filtered.front.src)) || legacy.centeringImages.front || cert.frontImage || "");
+      legacy.compareImages.back.original = ((compare.back && (compare.back.original || compare.back.base || compare.back.color)) || (main.backOriginal && (main.backOriginal.url || main.backOriginal.src)) || cert.backImage || "");
+      legacy.compareImages.back.filtered = ((compare.back && (compare.back.filtered || compare.back.overlay || compare.back.defects)) || (filtered.back && (filtered.back.url || filtered.back.src)) || legacy.centeringImages.back || cert.backImage || "");
 
       const corners = value.corners || {};
       ["front", "back"].forEach(side => {
@@ -163,6 +172,10 @@
         video: row.video_url || "",
         frontImage: row.front_image_url || "",
         backImage: row.back_image_url || "",
+        compareImages: {
+          front: { original: row.front_image_url || "", filtered: "" },
+          back: { original: row.back_image_url || "", filtered: "" }
+        },
         cardDetails: {
           name: row.card_name || "Carta sin nombre",
           year: row.card_year || "",
@@ -379,6 +392,91 @@
       `;
     }
 
+    function renderCompareCard(title, originalSrc, filteredSrc, originalAlt, filteredAlt){
+      if (!originalSrc || !filteredSrc) return "";
+      return `
+        <div class="vision-compare-card">
+          <div class="image-compare verify-image-compare" data-compare-box>
+            <img src="${safeText(originalSrc)}" alt="${safeText(originalAlt)}" class="compare-base" />
+            <img src="${safeText(filteredSrc)}" alt="${safeText(filteredAlt)}" class="compare-top" />
+            <div class="compare-divider"><span class="compare-handle"></span></div>
+            <div class="compare-tag compare-tag-left">Full Color</div>
+            <div class="compare-tag compare-tag-right">ACG Vision</div>
+          </div>
+          <span class="compare-card-label">${safeText(title)}</span>
+        </div>
+      `;
+    }
+
+    function renderCompareSection(cert){
+      const compare = cert.compareImages || {};
+      const frontOriginal = (compare.front && compare.front.original) || cert.frontImage || "";
+      const frontFiltered = (compare.front && compare.front.filtered) || cert.centeringImages?.front || "";
+      const backOriginal = (compare.back && compare.back.original) || cert.backImage || "";
+      const backFiltered = (compare.back && compare.back.filtered) || cert.centeringImages?.back || "";
+      if ((!frontOriginal || !frontFiltered) && (!backOriginal || !backFiltered)) return "";
+
+      return `
+        <section class="panel section-block">
+          <p class="process-visual-label">Comparación visual</p>
+          <h2 class="section-title">Full Color vs análisis técnico</h2>
+          <p class="compare-section-copy">Deslizá el divisor para comparar la carta original con la versión analizada mediante filtro técnico.</p>
+          <div class="centering-grid compare-grid">
+            ${renderCompareCard("Frente", frontOriginal, frontFiltered, `${cert.cardDetails.name} frente original`, `${cert.cardDetails.name} frente con filtro técnico`)}
+            ${renderCompareCard("Dorso", backOriginal, backFiltered, `${cert.cardDetails.name} dorso original`, `${cert.cardDetails.name} dorso con filtro técnico`)}
+          </div>
+        </section>
+      `;
+    }
+
+    function initCompareSliders(){
+      document.querySelectorAll('[data-compare-box]').forEach(compareBox => {
+        const compareTop = compareBox.querySelector('.compare-top');
+        const compareDivider = compareBox.querySelector('.compare-divider');
+        if (!compareTop || !compareDivider) return;
+
+        let isDragging = false;
+
+        function updateCompare(clientX) {
+          const rect = compareBox.getBoundingClientRect();
+          let position = ((clientX - rect.left) / rect.width) * 100;
+          position = Math.max(0, Math.min(100, position));
+          compareDivider.style.left = `${position}%`;
+          compareTop.style.clipPath = `inset(0 0 0 ${position}%)`;
+        }
+
+        function startDrag(clientX) {
+          isDragging = true;
+          updateCompare(clientX);
+        }
+
+        function stopDrag() {
+          isDragging = false;
+        }
+
+        compareBox.addEventListener('mousedown', event => startDrag(event.clientX));
+        window.addEventListener('mousemove', event => {
+          if (isDragging) updateCompare(event.clientX);
+        });
+        window.addEventListener('mouseup', stopDrag);
+
+        compareBox.addEventListener('touchstart', event => {
+          if (!event.touches.length) return;
+          startDrag(event.touches[0].clientX);
+        }, { passive: true });
+
+        window.addEventListener('touchmove', event => {
+          if (!isDragging || !event.touches.length) return;
+          updateCompare(event.touches[0].clientX);
+        }, { passive: true });
+
+        window.addEventListener('touchend', stopDrag);
+
+        compareDivider.style.left = '50%';
+        compareTop.style.clipPath = 'inset(0 0 0 50%)';
+      });
+    }
+
     function renderSummarySection(cert) {
       const summary = cert.summary || {};
       const items = [
@@ -507,9 +605,9 @@
         </div>
         <div class="pop-report-sub">Same card ranking</div>
         <div class="pop-report-stats">
-          <div><small>Population</small><b>${safeText(report.population)}</b></div>
+          <div><small>POP</small><b>${safeText(report.population)}</b></div>
           <div><small>Highest</small><b>${safeText(report.highestGrade)}</b></div>
-          <div><small>Average</small><b>${safeText(report.averageScore)}</b></div>
+          <div><small>AVG</small><b>${safeText(report.averageScore)}</b></div>
         </div>
       `;
     }
@@ -592,13 +690,20 @@
       container.innerHTML = `
         <div class="verify-status">${safeText(cert.status)}</div>
         <div class="verify-layout">
-          <div class="panel visual-panel">
-            ${cert.video
-              ? `<video src="${safeText(cert.video)}" autoplay muted loop playsinline></video>`
-              : cert.image
-                ? `<img src="${safeText(cert.image)}" alt="${safeText(cert.cardDetails.name)}">`
-                : `<div class="image-placeholder">Imagen del slab pendiente de carga.</div>`
-            }
+          <div class="visual-stack">
+            <div class="panel visual-panel">
+              ${cert.video
+                ? `<video src="${safeText(cert.video)}" autoplay muted loop playsinline></video>`
+                : cert.image
+                  ? `<img src="${safeText(cert.image)}" alt="${safeText(cert.cardDetails.name)}">`
+                  : `<div class="image-placeholder">Imagen del slab pendiente de carga.</div>`
+              }
+            </div>
+
+            <div class="certificate-insights-grid certificate-insights-side">
+              <div id="popReportBox" class="pop-report-box hidden"></div>
+              <div id="registeredOwnerBox" class="registered-owner-box hidden"></div>
+            </div>
           </div>
 
           <div class="panel content-panel">
@@ -642,9 +747,11 @@
         ${renderZoomSection(cert)}
         ${renderMicroscopeSection(cert)}
         ${renderEdgesSection(cert)}
+        ${renderCompareSection(cert)}
         ${renderSummarySection(cert)}
         
       `;
+      initCompareSliders();
       loadPopReport(cert);
       loadRegisteredOwner(cert.certificateId);
     }
