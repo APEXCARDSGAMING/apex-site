@@ -453,6 +453,104 @@
       `;
     }
 
+    function normalizePopValue(value){
+      return String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function popNumber(value){
+      const parsed = parseFloat(String(value ?? "").replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function rankingScore(row){
+      const avg = popNumber(row.average_score);
+      if (avg !== null) return avg;
+      const gradeMatch = String(row.final_grade || "").match(/\d+(?:[\.,]\d+)?/);
+      return gradeMatch ? popNumber(gradeMatch[0]) : 0;
+    }
+
+    function sameCardKeyFromCert(cert){
+      return [
+        cert.cardDetails.name,
+        cert.cardDetails.year,
+        cert.cardDetails.brand,
+        cert.cardDetails.set,
+        cert.cardDetails.number,
+        cert.cardDetails.variant
+      ].map(normalizePopValue).join("|");
+    }
+
+    function sameCardKeyFromRow(row){
+      return [
+        row.card_name,
+        row.card_year,
+        row.brand,
+        row.set_name,
+        row.card_number,
+        row.variant
+      ].map(normalizePopValue).join("|");
+    }
+
+    function renderPopReport(report){
+      const box = document.getElementById("popReportBox");
+      if (!box || !report) return;
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="pop-report-top">
+          <span>APEX Pop Report</span>
+          <strong>#${safeText(report.rank)} / ${safeText(report.population)}</strong>
+        </div>
+        <div class="pop-report-sub">Same card ranking</div>
+        <div class="pop-report-stats">
+          <div><small>Population</small><b>${safeText(report.population)}</b></div>
+          <div><small>Highest</small><b>${safeText(report.highestGrade)}</b></div>
+          <div><small>Average</small><b>${safeText(report.averageScore)}</b></div>
+        </div>
+      `;
+    }
+
+    async function loadPopReport(cert){
+      try {
+        const { data, error } = await supabaseClient
+          .from("certificates")
+          .select("certificate_id, final_grade, average_score, card_name, card_year, brand, set_name, card_number, variant, public_visible")
+          .eq("public_visible", true)
+          .limit(5000);
+
+        if (error) {
+          console.warn("No pude cargar pop report", error);
+          return;
+        }
+
+        const targetKey = sameCardKeyFromCert(cert);
+        const rows = (data || []).filter(row => sameCardKeyFromRow(row) === targetKey);
+        if (!rows.length) return;
+
+        const current = rows.find(row => normalizePopValue(row.certificate_id) === normalizePopValue(cert.certificateId)) || rows[0];
+        const currentScore = rankingScore(current);
+        const betterCount = rows.filter(row => rankingScore(row) > currentScore).length;
+        const rank = betterCount + 1;
+        const scores = rows.map(rankingScore);
+        const highestScore = Math.max(...scores);
+        const highestRow = rows.find(row => rankingScore(row) === highestScore) || rows[0];
+        const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
+        renderPopReport({
+          rank,
+          population: rows.length,
+          highestGrade: highestRow.final_grade || highestScore.toFixed(2),
+          averageScore: average.toFixed(2).replace(".00", "")
+        });
+      } catch (error) {
+        console.warn("No pude cargar pop report", error);
+      }
+    }
+
     function renderRegisteredOwner(owner){
       const box = document.getElementById("registeredOwnerBox");
       if (!box || !owner) return;
@@ -526,8 +624,6 @@
               <div class="meta-card"><b>Status</b>${safeText(cert.status)}</div>
             </div>
 
-            <div id="registeredOwnerBox" class="registered-owner-box hidden"></div>
-
             <div class="subgrades-grid">
               <div class="subgrade-card"><span class="subgrade-label">Surface</span><span class="subgrade-value">${safeText(cert.subgrades.surface)}</span></div>
               <div class="subgrade-card"><span class="subgrade-label">Corners</span><span class="subgrade-value">${safeText(cert.subgrades.corners)}</span></div>
@@ -549,6 +645,7 @@
         ${renderSummarySection(cert)}
         
       `;
+      loadPopReport(cert);
       loadRegisteredOwner(cert.certificateId);
     }
 
