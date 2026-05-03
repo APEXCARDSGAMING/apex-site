@@ -382,27 +382,27 @@
     function renderSummarySection(cert) {
       const summary = cert.summary || {};
       const items = [
-        ["Centering", summary.centering || "A detailed centering summary has not been loaded yet.", "↔"],
-        ["Corners", summary.corners || "A detailed corners summary has not been loaded yet.", "○"],
-        ["Edges", summary.edges || "A detailed edges summary has not been loaded yet.", "≡"],
-        ["Surface", summary.surface || "A detailed surface summary has not been loaded yet.", "✎"]
+        ["Centering", cert.subgrades.centering, summary.centering || "Your card's centering has been reviewed through the APEX visual alignment process, comparing border balance and overall positioning on both sides of the card.", "↔"],
+        ["Corners", cert.subgrades.corners, summary.corners || "Corner condition is evaluated through close-up inspection of all four front corners and all four back corners, looking for whitening, rounding, fraying, and corner touches.", "○"],
+        ["Edges", cert.subgrades.edges, summary.edges || "Edges are reviewed across the top, bottom, left, and right sides of the card, checking for chipping, notches, fraying, dents, and surface wear.", "≡"],
+        ["Surface", cert.subgrades.surface, summary.surface || cert.technicalAssessment || "Surface condition is evaluated through visual inspection and filtered captures to detect scratches, print defects, scuffing, pitting, and other surface-level imperfections.", "✎"]
       ];
       return `
-        <section class="panel section-block summary-block zone-analysis-block">
+        <section class="panel section-block summary-block">
           <h2 class="section-title">ZONE ANALYSIS</h2>
-          <div class="summary-grid zone-summary-grid">
-            ${items.map(([title, text, icon]) => `
-              <div class="summary-card zone-summary-card">
-                <div class="summary-card-head zone-summary-head">
-                  <div class="zone-title-wrap"><span class="zone-icon">${safeText(icon)}</span><b>${safeText(title)}</b></div>
-                </div>
-                <p>${safeText(text)}</p>
+          <div class="summary-grid">
+            ${items.map(([title, score, text, icon]) => `
+              <div class="summary-card zone-card">
+                <div class="summary-card-head zone-card-head"><div class="zone-title-wrap"><span class="zone-icon">${safeText(icon)}</span><b>${safeText(title)}</b></div></div>
+                <p>${safeText(text || "Summary pending.")}</p>
+                ${title === "Centering" && cert.centering_ratios ? `<div class="zone-ratios">${safeText(cert.centering_ratios)}</div>` : ""}
               </div>
             `).join("")}
           </div>
         </section>
       `;
     }
+
 
     function gradeNumber(value) {
       const parsed = parseFloat(String(value ?? "").replace(",", "."));
@@ -453,6 +453,37 @@
       `;
     }
 
+    function renderRegisteredOwner(owner){
+      const box = document.getElementById("registeredOwnerBox");
+      if (!box || !owner) return;
+      const name = owner.display_name || owner.username || "Collector";
+      const username = owner.username || "";
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div>
+          <span>Registered Collector</span>
+          <strong>${safeText(name)}</strong>
+        </div>
+        ${username ? `<a href="collector.html?user=${encodeURIComponent(username)}" class="owner-link">Ver colección</a>` : ""}
+      `;
+    }
+
+    async function loadRegisteredOwner(certificateId){
+      try {
+        const { data, error } = await supabaseClient.rpc("get_public_certificate_owner", {
+          p_certificate_id: certificateId
+        });
+        if (error) {
+          console.warn("No pude cargar dueño público", error);
+          return;
+        }
+        const owner = Array.isArray(data) ? data[0] : data;
+        if (owner) renderRegisteredOwner(owner);
+      } catch (error) {
+        console.warn("No pude cargar dueño público", error);
+      }
+    }
+
     function renderCertificate(cert) {
       const cardYear = formatValue(cert.cardDetails.year, "");
       const cardBrand = formatValue(cert.cardDetails.brand, "");
@@ -495,6 +526,8 @@
               <div class="meta-card"><b>Status</b>${safeText(cert.status)}</div>
             </div>
 
+            <div id="registeredOwnerBox" class="registered-owner-box hidden"></div>
+
             <div class="subgrades-grid">
               <div class="subgrade-card"><span class="subgrade-label">Surface</span><span class="subgrade-value">${safeText(cert.subgrades.surface)}</span></div>
               <div class="subgrade-card"><span class="subgrade-label">Corners</span><span class="subgrade-value">${safeText(cert.subgrades.corners)}</span></div>
@@ -516,6 +549,7 @@
         ${renderSummarySection(cert)}
         
       `;
+      loadRegisteredOwner(cert.certificateId);
     }
 
     async function loadCertificate() {

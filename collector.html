@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX Card Grading | Colección pública</title>
+  <meta name="description" content="Colección pública de APEX Card Grading." />
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html#top" class="brand" aria-label="Inicio APEX Card Grading">
+        <img src="assets/Logo-Apex .png" alt="APEX Card Grading" class="brand-logo" />
+      </a>
+      <nav class="nav" aria-label="Navegación principal">
+        <a href="index.html#escala">Escala</a>
+        <a href="index.html#proceso">Proceso</a>
+        <a href="index.html#precios">Precios</a>
+        <a href="verify.html">Verificar</a>
+        <a href="my-collection.html" class="login-link">Mi colección</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="container">
+      <section class="account-hero collector-hero">
+        <div>
+          <div class="eyebrow">Public Collector Profile</div>
+          <h1 id="collectorTitle">Colección APEX</h1>
+          <p id="collectorSubtitle" class="subtitle">Cartas registradas públicamente por este coleccionista.</p>
+        </div>
+      </section>
+
+      <section class="panel stats-card">
+        <div class="collector-headline">
+          <h2 class="section-title">Cartas registradas</h2>
+          <div class="collector-stats">
+            <span><b id="collectorTotal">0</b> cartas</span>
+            <span><b id="collectorBest">-</b> mejor nota</span>
+          </div>
+        </div>
+        <div id="collectorGrid" class="collection-grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://szhiimrrajvifumwkfpk.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gRlfE1ScPrVD-XKO1A_mWA_M1tcOKD7";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const params = new URLSearchParams(window.location.search);
+    const username = (params.get("user") || "").trim().toLowerCase();
+    const grid = document.getElementById("collectorGrid");
+
+    function safeText(value){
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatValue(value, fallback = "-"){
+      if (value === null || value === undefined || value === "") return fallback;
+      return value;
+    }
+
+    function getImage(item){
+      return item.slab_image_url || item.front_image_url || item.back_image_url || "";
+    }
+
+    function renderCards(items){
+      if (!items.length) {
+        grid.innerHTML = `<div class="empty">Esta colección no tiene cartas públicas todavía.</div>`;
+        return;
+      }
+      const scores = items.map(item => Number(item.average_score)).filter(num => !Number.isNaN(num));
+      document.getElementById("collectorTotal").textContent = items.length;
+      document.getElementById("collectorBest").textContent = scores.length ? Math.max(...scores).toFixed(2).replace(".00", "") : "-";
+      grid.innerHTML = items.map(item => {
+        const img = getImage(item);
+        const certId = item.certificate_id;
+        return `
+          <article class="cert-card">
+            <div class="cert-img">
+              ${img ? `<img src="${safeText(img)}" alt="${safeText(formatValue(item.card_name, certId))}" onerror="this.style.display='none'; this.parentElement.textContent='SIN IMAGEN';">` : "SIN IMAGEN"}
+            </div>
+            <div class="cert-info">
+              <h3>${safeText(formatValue(item.card_name, "Carta APEX"))}</h3>
+              <div class="cert-meta">
+                <strong>${safeText(certId)}</strong><br>
+                ${safeText(formatValue(item.card_year, ""))} ${safeText(formatValue(item.brand, ""))}<br>
+                ${safeText(formatValue(item.set_name, ""))}<br>
+                ${safeText(formatValue(item.card_number, ""))} ${safeText(formatValue(item.variant, ""))}
+              </div>
+              <div class="grade-pill">${safeText(formatValue(item.final_grade, "Sin nota"))}</div>
+              <div class="actions">
+                <a href="verify.html?id=${encodeURIComponent(certId)}" target="_blank">
+                  <button type="button" class="btn-secondary">Ver certificado</button>
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    async function loadCollector(){
+      if (!username) {
+        grid.innerHTML = `<div class="empty">Falta el usuario de la colección.</div>`;
+        return;
+      }
+      const { data, error } = await supabaseClient.rpc("get_public_collector_cards", { p_username: username });
+      if (error) {
+        console.error(error);
+        grid.innerHTML = `<div class="empty">No pude cargar esta colección. Revisá que hayas ejecutado el SQL de perfiles públicos.</div>`;
+        return;
+      }
+      const items = data || [];
+      if (items.length) {
+        const displayName = items[0].display_name || items[0].username || username;
+        document.getElementById("collectorTitle").textContent = "Colección de " + displayName;
+        document.getElementById("collectorSubtitle").textContent = "Cartas APEX registradas públicamente por " + displayName + ".";
+      } else {
+        document.getElementById("collectorTitle").textContent = "Colección privada o no encontrada";
+      }
+      renderCards(items);
+    }
+
+    loadCollector();
+  </script>
+</body>
+</html>

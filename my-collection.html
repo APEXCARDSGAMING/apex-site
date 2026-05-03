@@ -80,7 +80,10 @@
 
       <section id="appSection" class="hidden">
         <div class="app-top">
-          <div class="user-pill" id="userEmail">Usuario</div>
+          <div>
+            <div class="user-pill" id="userEmail">Usuario</div>
+            <a id="publicCollectionLink" class="public-collection-link hidden" href="#" target="_blank">Ver mi colección pública</a>
+          </div>
           <button id="logoutBtn" class="btn-danger">Cerrar sesión</button>
         </div>
 
@@ -143,6 +146,59 @@
     function formatValue(value, fallback = "-"){
       if (value === null || value === undefined || value === "") return fallback;
       return value;
+    }
+
+    function slugify(value){
+      return String(value || "collector")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "collector";
+    }
+
+    async function ensureProfile(user){
+      if (!user) return null;
+      const fallbackName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Collector";
+      const fallbackUsername = slugify(user.user_metadata?.username || fallbackName) + "-" + String(user.id).slice(0,6);
+
+      const { data: existing } = await supabaseClient
+        .from("profiles")
+        .select("username,display_name,public_collection")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (existing) return existing;
+
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          display_name: fallbackName,
+          username: fallbackUsername,
+          public_collection: true
+        }, { onConflict: "id" })
+        .select("username,display_name,public_collection")
+        .maybeSingle();
+
+      if (error) {
+        console.warn("No pude crear perfil público", error);
+        return null;
+      }
+      return data;
+    }
+
+    function renderPublicProfileLink(profile){
+      const link = el("publicCollectionLink");
+      if (!link) return;
+      if (!profile || !profile.username || profile.public_collection === false) {
+        link.classList.add("hidden");
+        return;
+      }
+      link.href = "collector.html?user=" + encodeURIComponent(profile.username);
+      link.textContent = "Ver colección pública: " + (profile.display_name || profile.username);
+      link.classList.remove("hidden");
     }
 
     function getImage(cert){
@@ -269,6 +325,8 @@
       el("authSection").classList.add("hidden");
       el("appSection").classList.remove("hidden");
       el("userEmail").textContent = session.user.email;
+      const profile = await ensureProfile(session.user);
+      renderPublicProfileLink(profile);
       await loadCollection();
     }
 
@@ -314,7 +372,7 @@
       const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } }
+        options: { data: { full_name: fullName, username: slugify(fullName || email.split("@")[0]) } }
       });
       el("signupBtn").disabled = false;
 

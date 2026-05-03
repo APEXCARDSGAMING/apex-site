@@ -215,10 +215,6 @@
 
         <div id="analysisPreview" class="analysis-preview hidden"></div>
 
-        <div id="analysisEditor" class="analysis-editor hidden"></div>
-
-        <div id="zoneAnalysisEditor" class="analysis-editor hidden"></div>
-
         <details class="analysis-json-details">
           <summary>Ver / editar JSON del análisis visual</summary>
           <textarea id="analysis_images" class="textarea-small" placeholder='{"summary":{"centering":"","corners":"","edges":"","surface":""},"zoomImages":{"front":{},"back":{}},"edgeImages":{"front":{},"back":{}}}'></textarea>
@@ -1331,203 +1327,6 @@
       return items.filter(item => item && (item.url || item.src));
     }
 
-
-    function parseAnalysisTextarea(){
-      const raw = el("analysis_images").value.trim();
-      if (!raw) return null;
-      try { return JSON.parse(raw); } catch (error) { return null; }
-    }
-
-    function syncAnalysisTextareaAndViews(analysis){
-      setJsonValue("analysis_images", analysis || null);
-      renderAnalysisPreview(analysis || null);
-      renderAnalysisEditor(analysis || null);
-    }
-
-    function getAnalysisEditorGroups(analysis){
-      if (!analysis) return [];
-      return [
-        {
-          title: 'Front Corners',
-          items: [
-            { path: 'zoomImages.front.topLeft', label: 'TOP LEFT', item: analysis.zoomImages?.front?.topLeft },
-            { path: 'zoomImages.front.topRight', label: 'TOP RIGHT', item: analysis.zoomImages?.front?.topRight },
-            { path: 'zoomImages.front.bottomLeft', label: 'BOTTOM LEFT', item: analysis.zoomImages?.front?.bottomLeft },
-            { path: 'zoomImages.front.bottomRight', label: 'BOTTOM RIGHT', item: analysis.zoomImages?.front?.bottomRight }
-          ]
-        },
-        {
-          title: 'Back Corners',
-          items: [
-            { path: 'zoomImages.back.topLeft', label: 'TOP LEFT', item: analysis.zoomImages?.back?.topLeft },
-            { path: 'zoomImages.back.topRight', label: 'TOP RIGHT', item: analysis.zoomImages?.back?.topRight },
-            { path: 'zoomImages.back.bottomLeft', label: 'BOTTOM LEFT', item: analysis.zoomImages?.back?.bottomLeft },
-            { path: 'zoomImages.back.bottomRight', label: 'BOTTOM RIGHT', item: analysis.zoomImages?.back?.bottomRight }
-          ]
-        },
-        {
-          title: 'Microscope Captures',
-          items: [
-            { path: 'microscopeImages.0', label: 'SURFACE', item: (analysis.microscopeImages || [])[0] },
-            { path: 'microscopeImages.1', label: 'ILLUSTRATION', item: (analysis.microscopeImages || [])[1] },
-            { path: 'microscopeImages.2', label: 'DETAIL', item: (analysis.microscopeImages || [])[2] }
-          ]
-        },
-        {
-          title: 'Front Edges',
-          items: [
-            { path: 'edgeImages.front.top', label: 'TOP', item: analysis.edgeImages?.front?.top },
-            { path: 'edgeImages.front.bottom', label: 'BOTTOM', item: analysis.edgeImages?.front?.bottom },
-            { path: 'edgeImages.front.left', label: 'LEFT', item: analysis.edgeImages?.front?.left },
-            { path: 'edgeImages.front.right', label: 'RIGHT', item: analysis.edgeImages?.front?.right }
-          ]
-        },
-        {
-          title: 'Back Edges',
-          items: [
-            { path: 'edgeImages.back.top', label: 'TOP', item: analysis.edgeImages?.back?.top },
-            { path: 'edgeImages.back.bottom', label: 'BOTTOM', item: analysis.edgeImages?.back?.bottom },
-            { path: 'edgeImages.back.left', label: 'LEFT', item: analysis.edgeImages?.back?.left },
-            { path: 'edgeImages.back.right', label: 'RIGHT', item: analysis.edgeImages?.back?.right }
-          ]
-        }
-      ].map(group => ({...group, items: group.items.filter(entry => entry.item && (entry.item.src || entry.item.url))})).filter(group => group.items.length);
-    }
-
-    function getByPath(root, path){
-      return String(path || '').split('.').reduce((acc, key) => acc?.[key], root);
-    }
-
-    function setByPath(root, path, value){
-      const keys = String(path || '').split('.');
-      const last = keys.pop();
-      let obj = root;
-      keys.forEach(key => {
-        if (obj[key] == null) obj[key] = /^\d+$/.test(key) ? [] : {};
-        obj = obj[key];
-      });
-      obj[last] = value;
-    }
-
-    function parseLines(value){
-      return String(value || '').split(/\n+/).map(line => line.trim()).filter(Boolean);
-    }
-
-    function renderAnalysisEditor(analysis){
-      const box = el('analysisEditor');
-      if (!box) return;
-      const groups = getAnalysisEditorGroups(analysis);
-      if (!groups.length) {
-        box.classList.add('hidden');
-        box.innerHTML = '';
-        return;
-      }
-      box.classList.remove('hidden');
-      box.innerHTML = `
-        <div class="analysis-editor-head">
-          <strong>Editor rápido por foto</strong>
-          <span>Acá cargás score, métricas y comentarios para verify. No incluye slab ni centering.</span>
-        </div>
-        ${groups.map(group => {
-          return `
-            <div class="analysis-editor-group">
-              <h4>${group.title}</h4>
-              <div class="analysis-editor-grid">
-                ${group.items.map(entry => {
-                  const item = entry.item;
-                  const src = item.src || item.url || '';
-                  const metrics = Array.isArray(item.metrics)
-                    ? item.metrics.map(m => typeof m === 'string' ? m : [m.label, m.value].filter(Boolean).join(' ')).join('\n')
-                    : '';
-                  const defects = Array.isArray(item.defects) ? item.defects.join('\n') : '';
-                  return `
-                    <article class="analysis-editor-card" data-path="${entry.path}">
-                      <div class="analysis-editor-thumb">
-                        <img src="${src}" alt="${entry.label}" loading="lazy" />
-                        <span>${entry.label}</span>
-                      </div>
-                      <label>Score
-                        <input type="text" class="analysis-input" data-field="score" data-path="${entry.path}" value="${String(item.score ?? '').replace(/"/g,'&quot;')}" placeholder="Ej: 9.83" />
-                      </label>
-                      <label>Métricas (una por línea)
-                        <textarea class="analysis-textarea" data-field="metrics" data-path="${entry.path}" placeholder="FRAY -0.5&#10;FILL -0.5&#10;ANGLE -0.0">${metrics}</textarea>
-                      </label>
-                      <label>Comentarios / defectos (uno por línea)
-                        <textarea class="analysis-textarea" data-field="defects" data-path="${entry.path}" placeholder="7 WHITENING&#10;8 CORNER TOUCHES">${defects}</textarea>
-                      </label>
-                    </article>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          `;
-        }).join('')}
-      `;
-    }
-    function renderZoneAnalysisEditor(analysis){
-      const box = el('zoneAnalysisEditor');
-      if (!box) return;
-      if (!analysis) {
-        box.classList.add('hidden');
-        box.innerHTML = '';
-        return;
-      }
-      const summary = analysis.summary || {};
-      box.classList.remove('hidden');
-      box.innerHTML = `
-        <div class="analysis-editor-head">
-          <strong>Editor de ZONE ANALYSIS</strong>
-          <span>Acá cargás los 4 textos descriptivos que después se ven abajo en verify.</span>
-        </div>
-        <div class="zone-editor-grid">
-          <div class="zone-editor-card">
-            <label>Centering
-              <textarea class="analysis-textarea zone-textarea" data-zone-field="centering" placeholder="Ej: Your card's centering received a perfect score of 10, indicating excellent alignment of the image within the card borders.">${summary.centering || ''}</textarea>
-            </label>
-          </div>
-          <div class="zone-editor-card">
-            <label>Corners
-              <textarea class="analysis-textarea zone-textarea" data-zone-field="corners" placeholder="Ej: The front corners of your card show no detectable defects...">${summary.corners || ''}</textarea>
-            </label>
-          </div>
-          <div class="zone-editor-card">
-            <label>Edges
-              <textarea class="analysis-textarea zone-textarea" data-zone-field="edges" placeholder="Ej: The front edges of your card are free from any detected defects...">${summary.edges || ''}</textarea>
-            </label>
-          </div>
-          <div class="zone-editor-card">
-            <label>Surface
-              <textarea class="analysis-textarea zone-textarea" data-zone-field="surface" placeholder="Ej: The front surface of your card presents minor scratches, print defects and scuffing...">${summary.surface || ''}</textarea>
-            </label>
-          </div>
-        </div>
-      `;
-    }
-
-    function handleZoneAnalysisEditorInput(event){
-      const target = event.target;
-      const field = target.dataset.zoneField;
-      if (!field) return;
-      const analysis = parseAnalysisTextarea() || createEmptyAnalysis('');
-      if (!analysis.summary || typeof analysis.summary !== 'object') analysis.summary = {};
-      analysis.summary[field] = target.value;
-      setJsonValue('analysis_images', analysis);
-    }
-
-    function handleAnalysisEditorInput(event){
-      const target = event.target;
-      if (!target.matches('[data-path][data-field]')) return;
-      const analysis = parseAnalysisTextarea();
-      if (!analysis) return;
-      const item = getByPath(analysis, target.dataset.path);
-      if (!item || typeof item !== 'object') return;
-      const field = target.dataset.field;
-      if (field === 'score') item.score = target.value.trim();
-      if (field === 'metrics') item.metrics = parseLines(target.value);
-      if (field === 'defects') item.defects = parseLines(target.value);
-      setJsonValue('analysis_images', analysis);
-    }
-
     function renderAnalysisPreview(analysis){
       const box = el("analysisPreview");
       if (!box) return;
@@ -1536,13 +1335,9 @@
       if (!items.length) {
         box.classList.add("hidden");
         box.innerHTML = "";
-        renderAnalysisEditor(null);
-        renderZoneAnalysisEditor(null);
         return;
       }
       box.classList.remove("hidden");
-      renderAnalysisEditor(analysis);
-      renderZoneAnalysisEditor(analysis);
       box.innerHTML = `
         <div class="analysis-preview-head">
           <strong>Vista previa del análisis visual</strong>
@@ -1731,9 +1526,6 @@
     el("openVerifyBtn").addEventListener("click", openVerify);
     el("importAnalysisFolderBtn").addEventListener("click", uploadAnalysisFolder);
     el("clearAnalysisImagesBtn").addEventListener("click", clearAnalysisImages);
-    el("analysisEditor").addEventListener("input", handleAnalysisEditorInput);
-    el("zoneAnalysisEditor").addEventListener("input", handleZoneAnalysisEditorInput);
-    el("analysis_images").addEventListener("input", () => { const parsed = parseAnalysisTextarea(); renderAnalysisEditor(parsed); renderZoneAnalysisEditor(parsed); });
     el("analysis_images").addEventListener("input", function(){
       try { renderAnalysisPreview(jsonOrNull("analysis_images")); } catch (error) {}
     });
@@ -1754,3 +1546,4 @@
   </script>
 </body>
 </html>
+
