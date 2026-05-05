@@ -229,29 +229,47 @@
       `;
     }
 
-    function renderCornerCard(corner, fallbackTitle) {
-      const item = normalizeItem(corner, fallbackTitle);
-      if (!item) return "";
-
+    function renderDetailBlock(item, type){
       const metrics = (item.metrics || [])
-        .map(metric => `<span class="corner-metric">${safeText(metric.label)} ${safeText(metric.value)}</span>`)
+        .map(metric => `<span class="${type}-metric analysis-metric-chip"><small>${safeText(metric.label)}</small><b>${safeText(metric.value)}</b></span>`)
         .join("");
 
       const defects = (item.defects || [])
-        .map(defect => `<span class="corner-defect">${safeText(defect)}</span>`)
+        .map(defect => `<span class="${type}-defect analysis-note-chip">${safeText(defect)}</span>`)
         .join("");
+
+      return `
+        <div class="analysis-detail-panel">
+          <div class="analysis-detail-row">
+            <span class="analysis-detail-label">FRAY / FILL / ANGLE</span>
+            <div class="analysis-detail-chips analysis-metrics-list">
+              ${metrics || `<span class="analysis-empty-chip">Sin métricas cargadas</span>`}
+            </div>
+          </div>
+          <div class="analysis-detail-row">
+            <span class="analysis-detail-label">NOTAS</span>
+            <div class="analysis-detail-chips analysis-notes-list">
+              ${defects || `<span class="analysis-empty-chip no-defects">NO DEFECTS</span>`}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCornerCard(corner, fallbackTitle) {
+      const item = normalizeItem(corner, fallbackTitle);
+      if (!item) return "";
 
       return `
         <div class="corner-analysis-card">
           <div class="corner-image-wrap">
             <img src="${safeText(item.src)}" alt="${safeText(item.title || fallbackTitle)}">
-            <div class="corner-topbar">
-              <span class="corner-title">${safeText(item.title || fallbackTitle)}</span>
-              ${item.score !== "" ? `<span class="corner-score">${safeText(item.score)}</span>` : ""}
+            <div class="corner-topbar analysis-topbar">
+              ${item.score !== "" ? `<span class="corner-score analysis-score-badge">${safeText(item.score)}</span>` : `<span class="corner-score analysis-score-badge muted">—</span>`}
+              <span class="corner-title analysis-title-badge">${safeText(item.title || fallbackTitle)}</span>
             </div>
           </div>
-          ${metrics ? `<div class="corner-metrics">${metrics}</div>` : `<div class="corner-metrics"><span class="corner-metric no-defects">NO DEFECTS</span></div>`}
-          ${defects ? `<div class="corner-defects">${defects}</div>` : ""}
+          ${renderDetailBlock(item, "corner")}
         </div>
       `;
     }
@@ -296,24 +314,17 @@
     function renderMicroscopeCard(item) {
       const normalized = normalizeItem(item, "DETAIL");
       if (!normalized) return "";
-      const metrics = (normalized.metrics || [])
-        .map(metric => `<span class="micro-metric">${safeText(metric.label)} ${safeText(metric.value)}</span>`)
-        .join("");
-      const defects = (normalized.defects || [])
-        .map(defect => `<span class="micro-defect">${safeText(defect)}</span>`)
-        .join("");
 
       return `
         <div class="micro-analysis-card">
           <div class="micro-image-wrap">
             <img src="${safeText(normalized.src)}" alt="${safeText(normalized.title)}">
-            <div class="micro-topbar">
-              <span class="micro-title">${safeText(normalized.title)}</span>
-              ${normalized.score !== "" ? `<span class="micro-score">${safeText(normalized.score)}</span>` : ""}
+            <div class="micro-topbar analysis-topbar">
+              ${normalized.score !== "" ? `<span class="micro-score analysis-score-badge">${safeText(normalized.score)}</span>` : `<span class="micro-score analysis-score-badge muted">—</span>`}
+              <span class="micro-title analysis-title-badge">${safeText(normalized.title)}</span>
             </div>
           </div>
-          ${metrics ? `<div class="micro-metrics">${metrics}</div>` : ""}
-          ${defects ? `<div class="micro-defects">${defects}</div>` : ""}
+          ${renderDetailBlock(normalized, "micro")}
         </div>
       `;
     }
@@ -333,24 +344,17 @@
     function renderEdgeCard(edge, fallbackTitle) {
       const normalized = normalizeItem(edge, fallbackTitle);
       if (!normalized) return "";
-      const metrics = (normalized.metrics || [])
-        .map(item => `<span class="edge-metric">${safeText(item.label)} ${safeText(item.value)}</span>`)
-        .join("");
-      const defects = (normalized.defects || [])
-        .map(item => `<span class="edge-defect">${safeText(item)}</span>`)
-        .join("");
 
       return `
         <div class="edge-analysis-card">
           <div class="edge-image-wrap">
             <img src="${safeText(normalized.src)}" alt="${safeText(normalized.title || fallbackTitle)}">
-            <div class="edge-topbar">
-              <span class="edge-title">${safeText(normalized.title || fallbackTitle)}</span>
-              ${normalized.score !== "" ? `<span class="edge-score">${safeText(normalized.score)}</span>` : ""}
+            <div class="edge-topbar analysis-topbar">
+              ${normalized.score !== "" ? `<span class="edge-score analysis-score-badge">${safeText(normalized.score)}</span>` : `<span class="edge-score analysis-score-badge muted">—</span>`}
+              <span class="edge-title analysis-title-badge">${safeText(normalized.title || fallbackTitle)}</span>
             </div>
           </div>
-          ${metrics ? `<div class="edge-metrics">${metrics}</div>` : ""}
-          ${defects ? `<div class="edge-defects">${defects}</div>` : ""}
+          ${renderDetailBlock(normalized, "edge")}
         </div>
       `;
     }
@@ -491,7 +495,7 @@
           <div class="summary-grid">
             ${items.map(([title, score, text, icon]) => `
               <div class="summary-card zone-card">
-                <div class="summary-card-head zone-card-head"><div class="zone-title-wrap"><span class="zone-icon">${safeText(icon)}</span><b>${safeText(title)}</b></div></div>
+                <div class="summary-card-head zone-card-head"><b>${safeText(title)}</b></div>
                 <p>${safeText(text || "Summary pending.")}</p>
                 ${title === "Centering" && cert.centering_ratios ? `<div class="zone-ratios">${safeText(cert.centering_ratios)}</div>` : ""}
               </div>

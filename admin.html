@@ -215,6 +215,30 @@
 
         <div id="analysisPreview" class="analysis-preview hidden"></div>
 
+        <div id="imageMetricsEditor" class="image-metrics-editor hidden"></div>
+
+        <div class="zone-analysis-editor-panel" id="zoneAnalysisEditorPanel">
+          <div class="analysis-preview-head">
+            <strong>Editor de ZONE ANALYSIS</strong>
+            <span>Editá estos textos y después tocá Guardar certificado.</span>
+          </div>
+          <div class="zone-editor-grid">
+            <label>Centering
+              <textarea id="zone_summary_centering" class="textarea-small zone-editor-textarea" placeholder="Texto para Centering..."></textarea>
+            </label>
+            <label>Corners
+              <textarea id="zone_summary_corners" class="textarea-small zone-editor-textarea" placeholder="Texto para Corners..."></textarea>
+            </label>
+            <label>Edges
+              <textarea id="zone_summary_edges" class="textarea-small zone-editor-textarea" placeholder="Texto para Edges..."></textarea>
+            </label>
+            <label>Surface
+              <textarea id="zone_summary_surface" class="textarea-small zone-editor-textarea" placeholder="Texto para Surface..."></textarea>
+            </label>
+          </div>
+        </div>
+
+
         <details class="analysis-json-details">
           <summary>Ver / editar JSON del análisis visual</summary>
           <textarea id="analysis_images" class="textarea-small" placeholder='{"summary":{"centering":"","corners":"","edges":"","surface":""},"zoomImages":{"front":{},"back":{}},"edgeImages":{"front":{},"back":{}}}'></textarea>
@@ -234,7 +258,7 @@
       </div>
 
       <h2 class="section-title">Carga avanzada pendiente</h2>
-      <p class="hint">Ahora el informe visual se importa desde carpetas. Si querés personalizar títulos, score, métricas, defectos y resúmenes, podés hacerlo desde el JSON del análisis visual.</p>
+      <p class="hint">Ahora el informe visual se importa desde carpetas. Usá el editor visual para score, FRAY, FILL, ANGLE, notas y Zone Analysis. El JSON queda solo como respaldo avanzado.</p>
     </section>
   </div>
 
@@ -316,6 +340,260 @@
       el(id).value = value ? JSON.stringify(value, null, 2) : "";
     }
 
+
+    function safeJsonFromAnalysisField(){
+      const raw = el("analysis_images") ? el("analysis_images").value.trim() : "";
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch (error) { return null; }
+    }
+
+    function ensureAnalysisObject(){
+      let analysis = safeJsonFromAnalysisField();
+      if (!analysis || typeof analysis !== "object") analysis = createEmptyAnalysis("");
+      if (!analysis.summary || typeof analysis.summary !== "object") analysis.summary = {};
+      return analysis;
+    }
+
+    function setZoneEditorValues(analysis){
+      const summary = (analysis && analysis.summary) || {};
+      setValue("zone_summary_centering", summary.centering || "");
+      setValue("zone_summary_corners", summary.corners || "");
+      setValue("zone_summary_edges", summary.edges || "");
+      setValue("zone_summary_surface", summary.surface || "");
+    }
+
+    function syncZoneEditorToJson(){
+      const analysis = ensureAnalysisObject();
+      analysis.summary.centering = el("zone_summary_centering").value.trim();
+      analysis.summary.corners = el("zone_summary_corners").value.trim();
+      analysis.summary.edges = el("zone_summary_edges").value.trim();
+      analysis.summary.surface = el("zone_summary_surface").value.trim();
+      setJsonValue("analysis_images", analysis);
+    }
+
+
+    function adminSafe(value){
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function pathGet(root, path){
+      return String(path || "").split(".").reduce((acc, key) => acc && acc[key], root);
+    }
+
+    function normalizeMetricLabel(value){
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function metricValue(item, label){
+      const wanted = normalizeMetricLabel(label);
+      const metrics = Array.isArray(item && item.metrics) ? item.metrics : [];
+      for (const metric of metrics) {
+        if (typeof metric === "string") {
+          const clean = metric.trim();
+          const parts = clean.split(/\s+/);
+          if (normalizeMetricLabel(parts[0]) === wanted) return parts.slice(1).join(" ");
+        } else if (metric && typeof metric === "object") {
+          if (normalizeMetricLabel(metric.label) === wanted) return metric.value ?? "";
+        }
+      }
+      return "";
+    }
+
+    function setMetric(item, label, value){
+      if (!item || typeof item !== "object") return;
+      const wanted = normalizeMetricLabel(label);
+      const next = [];
+      const metrics = Array.isArray(item.metrics) ? item.metrics : [];
+      metrics.forEach(metric => {
+        const metricLabel = typeof metric === "string"
+          ? normalizeMetricLabel(metric.split(/\s+/)[0])
+          : normalizeMetricLabel(metric && metric.label);
+        if (metricLabel && metricLabel !== wanted) next.push(metric);
+      });
+      if (String(value || "").trim()) next.push({ label: wanted, value: String(value).trim() });
+      item.metrics = next;
+    }
+
+    function notesText(item){
+      return Array.isArray(item && item.defects) ? item.defects.join("\n") : "";
+    }
+
+    function notesFromText(value){
+      return String(value || "")
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(Boolean);
+    }
+
+    function getImageMetricGroups(analysis){
+      if (!analysis || typeof analysis !== "object") return [];
+      const groups = [
+        {
+          title: "Front Corners",
+          rows: [
+            ["zoomImages.front.topLeft", "TOP LEFT"],
+            ["zoomImages.front.topRight", "TOP RIGHT"],
+            ["zoomImages.front.bottomLeft", "BOTTOM LEFT"],
+            ["zoomImages.front.bottomRight", "BOTTOM RIGHT"]
+          ]
+        },
+        {
+          title: "Back Corners",
+          rows: [
+            ["zoomImages.back.topLeft", "TOP LEFT"],
+            ["zoomImages.back.topRight", "TOP RIGHT"],
+            ["zoomImages.back.bottomLeft", "BOTTOM LEFT"],
+            ["zoomImages.back.bottomRight", "BOTTOM RIGHT"]
+          ]
+        },
+        {
+          title: "Microscope",
+          rows: [
+            ["microscopeImages.0", "SURFACE"],
+            ["microscopeImages.1", "ILLUSTRATION"],
+            ["microscopeImages.2", "DETAIL"]
+          ]
+        },
+        {
+          title: "Front Edges",
+          rows: [
+            ["edgeImages.front.top", "TOP"],
+            ["edgeImages.front.bottom", "BOTTOM"],
+            ["edgeImages.front.left", "LEFT"],
+            ["edgeImages.front.right", "RIGHT"]
+          ]
+        },
+        {
+          title: "Back Edges",
+          rows: [
+            ["edgeImages.back.top", "TOP"],
+            ["edgeImages.back.bottom", "BOTTOM"],
+            ["edgeImages.back.left", "LEFT"],
+            ["edgeImages.back.right", "RIGHT"]
+          ]
+        }
+      ];
+      return groups.map(group => ({
+        title: group.title,
+        rows: group.rows.map(([path, fallbackTitle]) => {
+          const item = pathGet(analysis, path);
+          if (!item || !(item.url || item.src)) return null;
+          return { path, fallbackTitle, item };
+        }).filter(Boolean)
+      })).filter(group => group.rows.length);
+    }
+
+    function renderImageMetricsEditor(analysis){
+      const box = el("imageMetricsEditor");
+      if (!box) return;
+      const groups = getImageMetricGroups(analysis);
+      if (!groups.length) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+        return;
+      }
+      box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="analysis-preview-head image-metrics-head">
+          <div>
+            <strong>Editor de análisis por imagen</strong>
+            <span>Completá Score, FRAY, FILL, ANGLE y Notas. Después tocá Guardar certificado.</span>
+          </div>
+          <button type="button" class="btn-secondary mini-btn" id="collapseMetricsEditorBtn">Ocultar editor</button>
+        </div>
+        <div id="imageMetricsEditorBody" class="image-metrics-body">
+          ${groups.map(group => `
+            <div class="metric-editor-group">
+              <h4>${adminSafe(group.title)}</h4>
+              <div class="metric-editor-grid">
+                ${group.rows.map(({ path, fallbackTitle, item }) => `
+                  <article class="metric-editor-card">
+                    <div class="metric-editor-thumb">
+                      <img src="${adminSafe(item.url || item.src)}" alt="${adminSafe(item.title || fallbackTitle)}" loading="lazy" />
+                      <span>${adminSafe(item.title || fallbackTitle)}</span>
+                    </div>
+                    <div class="metric-editor-fields">
+                      <label>Score
+                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="score" value="${adminSafe(item.score || "")}" placeholder="Ej: 9.85" />
+                      </label>
+                      <label>FRAY
+                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="FRAY" value="${adminSafe(metricValue(item, "FRAY"))}" placeholder="-0.0" />
+                      </label>
+                      <label>FILL
+                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="FILL" value="${adminSafe(metricValue(item, "FILL"))}" placeholder="-0.0" />
+                      </label>
+                      <label>ANGLE
+                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="ANGLE" value="${adminSafe(metricValue(item, "ANGLE"))}" placeholder="-0.0" />
+                      </label>
+                    </div>
+                    <label class="metric-notes-label">Notas / defectos
+                      <textarea data-metric-path="${adminSafe(path)}" data-metric-field="defects" placeholder="6 CHIPPING\n16 SURFACE WEAR">${adminSafe(notesText(item))}</textarea>
+                    </label>
+                    <div class="metric-editor-actions">
+                      <button type="button" class="btn-secondary mini-btn" data-metric-preset="no-defects" data-metric-path="${adminSafe(path)}">No defects</button>
+                      <button type="button" class="btn-secondary mini-btn" data-metric-preset="clear" data-metric-path="${adminSafe(path)}">Limpiar</button>
+                    </div>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function handleImageMetricsInput(event){
+      const target = event.target;
+      if (!target || !target.dataset || !target.dataset.metricPath) return;
+      const analysis = ensureAnalysisObject();
+      const item = pathGet(analysis, target.dataset.metricPath);
+      if (!item || typeof item !== "object") return;
+      const field = target.dataset.metricField;
+      if (field === "score") item.score = target.value.trim();
+      else if (field === "defects") item.defects = notesFromText(target.value);
+      else if (["FRAY", "FILL", "ANGLE"].includes(field)) setMetric(item, field, target.value);
+      setJsonValue("analysis_images", analysis);
+    }
+
+    function handleImageMetricsClick(event){
+      const button = event.target.closest("[data-metric-preset]");
+      if (!button) return;
+      const analysis = ensureAnalysisObject();
+      const item = pathGet(analysis, button.dataset.metricPath);
+      if (!item || typeof item !== "object") return;
+      const preset = button.dataset.metricPreset;
+      if (preset === "no-defects") {
+        item.defects = [];
+        item.metrics = [
+          { label: "FRAY", value: "-0.0" },
+          { label: "FILL", value: "-0.0" },
+          { label: "ANGLE", value: "-0.0" }
+        ];
+        if (!String(item.score || "").trim()) item.score = "10";
+      }
+      if (preset === "clear") {
+        item.score = "";
+        item.metrics = [];
+        item.defects = [];
+      }
+      setJsonValue("analysis_images", analysis);
+      renderImageMetricsEditor(analysis);
+    }
+
+    function handleMetricsCollapse(event){
+      const button = event.target.closest("#collapseMetricsEditorBtn");
+      if (!button) return;
+      const body = el("imageMetricsEditorBody");
+      if (!body) return;
+      body.classList.toggle("hidden");
+      button.textContent = body.classList.contains("hidden") ? "Mostrar editor" : "Ocultar editor";
+    }
+
     function getPayload(){
       const certificateId = el("certificate_id").value.trim().toUpperCase();
 
@@ -354,6 +632,7 @@
       el("public_visible").checked = data.public_visible !== false;
       if (el("transfer_key")) el("transfer_key").value = "";
       renderAnalysisPreview(data.analysis_images || null);
+      setZoneEditorValues(data.analysis_images || null);
       updateQrUrlField();
       clearQrPreview();
     }
@@ -367,6 +646,7 @@
       if (el("transfer_key")) el("transfer_key").value = "";
       if (el("qr_url")) el("qr_url").value = "";
       renderAnalysisPreview(null);
+      setZoneEditorValues(null);
       clearQrPreview();
       clearMessage("adminMessage");
     }
@@ -1372,9 +1652,11 @@
       if (!items.length) {
         box.classList.add("hidden");
         box.innerHTML = "";
+        renderImageMetricsEditor(null);
         return;
       }
       box.classList.remove("hidden");
+      renderImageMetricsEditor(analysis);
       box.innerHTML = `
         <div class="analysis-preview-head">
           <strong>Vista previa del análisis visual</strong>
@@ -1464,6 +1746,7 @@
 
         setJsonValue("analysis_images", analysis);
         renderAnalysisPreview(analysis);
+        setZoneEditorValues(analysis);
         setUploadStatus("analysisFolderUpload", "good", "Carpeta importada. Se detectaron " + countAnalysisImages(analysis) + " imágenes. Faltantes: " + standardReport.missing.length + ". Extras: " + standardReport.extras.length + ". Ahora guardá el certificado.");
         showMessage("adminMessage", "good", "Análisis visual importado correctamente para <strong>" + certificateId + "</strong>. Estándar APEX: " + (standardReport.missing.length ? "faltan " + standardReport.missing.join(", ") : "carpeta completa") + ". Después tocá <strong>Guardar certificado</strong>.");
       } catch (error) {
@@ -1479,6 +1762,7 @@
     function clearAnalysisImages(){
       setJsonValue("analysis_images", null);
       renderAnalysisPreview(null);
+      setZoneEditorValues(null);
       setUploadStatus("analysisFolderUpload", "", "Análisis visual limpiado en el formulario. Tocá Guardar certificado para aplicar el cambio en Supabase.");
     }
 
@@ -1563,8 +1847,21 @@
     el("openVerifyBtn").addEventListener("click", openVerify);
     el("importAnalysisFolderBtn").addEventListener("click", uploadAnalysisFolder);
     el("clearAnalysisImagesBtn").addEventListener("click", clearAnalysisImages);
+    el("imageMetricsEditor").addEventListener("input", handleImageMetricsInput);
+    el("imageMetricsEditor").addEventListener("click", function(event){
+      handleImageMetricsClick(event);
+      handleMetricsCollapse(event);
+    });
     el("analysis_images").addEventListener("input", function(){
-      try { renderAnalysisPreview(jsonOrNull("analysis_images")); } catch (error) {}
+      try {
+        const parsed = jsonOrNull("analysis_images");
+        renderAnalysisPreview(parsed);
+        setZoneEditorValues(parsed);
+      } catch (error) {}
+    });
+    ["zone_summary_centering", "zone_summary_corners", "zone_summary_edges", "zone_summary_surface"].forEach(id => {
+      const field = el(id);
+      if (field) field.addEventListener("input", syncZoneEditorToJson);
     });
     document.querySelectorAll("[data-upload-target]").forEach(button => {
       button.addEventListener("click", () => uploadSelectedFile(button));
