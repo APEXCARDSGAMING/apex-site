@@ -964,3 +964,10 @@ h1{
   .footer-links a{width:100%}
   .legal-card{padding:22px;border-radius:22px}
 }
+
+
+/* Admin image editor: Score + Notes only */
+.metric-editor-fields{grid-template-columns:minmax(120px,160px) !important;max-width:180px}
+.metric-editor-fields label{max-width:180px}
+.analysis-notes-only-panel .analysis-detail-row{margin-top:0}
+@media (max-width:720px){.metric-editor-fields{grid-template-columns:minmax(120px,160px) !important}.metric-notes-label,.metric-editor-actions{grid-column:1}}

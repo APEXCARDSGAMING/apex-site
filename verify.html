@@ -247,22 +247,12 @@
     }
 
     function renderDetailBlock(item, type){
-      const metrics = (item.metrics || [])
-        .map(metric => `<span class="${type}-metric analysis-metric-chip"><small>${safeText(metric.label)}</small><b>${safeText(metric.value)}</b></span>`)
-        .join("");
-
       const defects = (item.defects || [])
         .map(defect => `<span class="${type}-defect analysis-note-chip">${safeText(defect)}</span>`)
         .join("");
 
       return `
-        <div class="analysis-detail-panel">
-          <div class="analysis-detail-row">
-            <span class="analysis-detail-label">FRAY / FILL / ANGLE</span>
-            <div class="analysis-detail-chips analysis-metrics-list">
-              ${metrics || `<span class="analysis-empty-chip">Sin métricas cargadas</span>`}
-            </div>
-          </div>
+        <div class="analysis-detail-panel analysis-notes-only-panel">
           <div class="analysis-detail-row">
             <span class="analysis-detail-label">NOTAS</span>
             <div class="analysis-detail-chips analysis-notes-list">

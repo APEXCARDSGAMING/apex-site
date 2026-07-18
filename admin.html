@@ -258,7 +258,7 @@
       </div>
 
       <h2 class="section-title">Carga avanzada pendiente</h2>
-      <p class="hint">Ahora el informe visual se importa desde carpetas. Usá el editor visual para score, FRAY, FILL, ANGLE, notas y Zone Analysis. El JSON queda solo como respaldo avanzado.</p>
+      <p class="hint">Ahora el informe visual se importa desde carpetas. Usá el editor visual para score, notas y Zone Analysis. El JSON queda solo como respaldo avanzado.</p>
     </section>
   </div>
 
@@ -430,6 +430,22 @@
         .filter(Boolean);
     }
 
+    function stripImageMetricsFromAnalysis(value){
+      if (!value || typeof value !== "object") return value;
+      const walk = current => {
+        if (Array.isArray(current)) {
+          current.forEach(walk);
+          return;
+        }
+        if (!current || typeof current !== "object") return;
+        if (Object.prototype.hasOwnProperty.call(current, "metrics")) delete current.metrics;
+        Object.keys(current).forEach(key => walk(current[key]));
+      };
+      walk(value);
+      return value;
+    }
+
+
     function getImageMetricGroups(analysis){
       if (!analysis || typeof analysis !== "object") return [];
       const groups = [
@@ -502,7 +518,7 @@
         <div class="analysis-preview-head image-metrics-head">
           <div>
             <strong>Editor de análisis por imagen</strong>
-            <span>Completá Score, FRAY, FILL, ANGLE y Notas. Después tocá Guardar certificado.</span>
+            <span>Completá Score y Notas. Después tocá Guardar certificado.</span>
           </div>
           <button type="button" class="btn-secondary mini-btn" id="collapseMetricsEditorBtn">Ocultar editor</button>
         </div>
@@ -520,15 +536,6 @@
                     <div class="metric-editor-fields">
                       <label>Score
                         <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="score" value="${adminSafe(item.score || "")}" placeholder="Ej: 9.85" />
-                      </label>
-                      <label>FRAY
-                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="FRAY" value="${adminSafe(metricValue(item, "FRAY"))}" placeholder="-0.0" />
-                      </label>
-                      <label>FILL
-                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="FILL" value="${adminSafe(metricValue(item, "FILL"))}" placeholder="-0.0" />
-                      </label>
-                      <label>ANGLE
-                        <input type="text" data-metric-path="${adminSafe(path)}" data-metric-field="ANGLE" value="${adminSafe(metricValue(item, "ANGLE"))}" placeholder="-0.0" />
                       </label>
                     </div>
                     <label class="metric-notes-label">Notas / defectos
@@ -556,7 +563,6 @@
       const field = target.dataset.metricField;
       if (field === "score") item.score = target.value.trim();
       else if (field === "defects") item.defects = notesFromText(target.value);
-      else if (["FRAY", "FILL", "ANGLE"].includes(field)) setMetric(item, field, target.value);
       setJsonValue("analysis_images", analysis);
     }
 
@@ -569,16 +575,12 @@
       const preset = button.dataset.metricPreset;
       if (preset === "no-defects") {
         item.defects = [];
-        item.metrics = [
-          { label: "FRAY", value: "-0.0" },
-          { label: "FILL", value: "-0.0" },
-          { label: "ANGLE", value: "-0.0" }
-        ];
+        delete item.metrics;
         if (!String(item.score || "").trim()) item.score = "10";
       }
       if (preset === "clear") {
         item.score = "";
-        item.metrics = [];
+        delete item.metrics;
         item.defects = [];
       }
       setJsonValue("analysis_images", analysis);
@@ -599,6 +601,9 @@
 
       if (!certificateId) throw new Error("Falta el Certificate ID.");
       if (!el("card_name").value.trim()) throw new Error("Falta el nombre de la carta.");
+
+      const cleanAnalysisImages = stripImageMetricsFromAnalysis(jsonOrNull("analysis_images"));
+      setJsonValue("analysis_images", cleanAnalysisImages);
 
       return {
         certificate_id: certificateId,
@@ -622,7 +627,7 @@
         slab_image_url: el("slab_image_url").value.trim() || null,
         video_url: el("video_url").value.trim() || null,
         public_visible: el("public_visible").checked,
-        analysis_images: jsonOrNull("analysis_images")
+        analysis_images: cleanAnalysisImages
       };
     }
 
@@ -1525,7 +1530,6 @@
         filename: file.name,
         score: "",
         overlays: { hLine: true, vLine: true },
-        metrics: [],
         defects: []
       };
 
